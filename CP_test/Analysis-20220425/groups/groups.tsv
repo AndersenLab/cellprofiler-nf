@@ -1,0 +1,5 @@
+group	pipeline	output
+Metadata_Group=p002_A01	/projects/b1059/projects/Tim/cellprofiler-nf/CP_test/Analysis-20220425/pipeline/pipeline.cppipe	/projects/b1059/projects/Tim/cellprofiler-nf/CP_test/Analysis-20220425/CP_output/p002_A01
+Metadata_Group=p002_A02	/projects/b1059/projects/Tim/cellprofiler-nf/CP_test/Analysis-20220425/pipeline/pipeline.cppipe	/projects/b1059/projects/Tim/cellprofiler-nf/CP_test/Analysis-20220425/CP_output/p002_A02
+Metadata_Group=p002_B01	/projects/b1059/projects/Tim/cellprofiler-nf/CP_test/Analysis-20220425/pipeline/pipeline.cppipe	/projects/b1059/projects/Tim/cellprofiler-nf/CP_test/Analysis-20220425/CP_output/p002_B01
+Metadata_Group=p003_A01	/projects/b1059/projects/Tim/cellprofiler-nf/CP_test/Analysis-20220425/pipeline/pipeline.cppipe	/projects/b1059/projects/Tim/cellprofiler-nf/CP_test/Analysis-20220425/CP_output/p003_A01

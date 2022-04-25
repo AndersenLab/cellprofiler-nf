@@ -1,0 +1,377 @@
+CellProfiler Pipeline: http://www.cellprofiler.org
+Version:5
+DateRevision:421
+GitHash:
+ModuleCount:23
+HasImagePlaneDetails:False
+
+LoadData:[module_num:1|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Input data file location:Elsewhere...|/projects/b1059/projects/Tim/cellprofiler-nf/CP_test/Analysis-20220425/metadata
+    Name of the file:metadata.csv
+    Load images based on this data?:Yes
+    Base image location:Default Input Folder|
+    Process just a range of rows?:No
+    Rows to process:1,1
+    Group images by metadata?:Yes
+    Select metadata tags for grouping:Group
+    Rescale intensities?:Yes
+
+ImageMath:[module_num:2|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Invert
+    Raise the power of the result by:1
+    Multiply the result by:1
+    Add to result:0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:InvertedRAW
+    Image or measurement?:Image
+    Select the first image:RawBF
+    Multiply the first image by:1
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:
+    Multiply the second image by:1
+    Measurement:
+
+MaskImage:[module_num:3|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:InvertedRAW
+    Name the output image:MaskedRaw
+    Use objects or an image as a mask?:Image
+    Select object for mask:None
+    Select image for mask:wellmask_98.png
+    Invert the mask?:No
+
+MaskImage:[module_num:4|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:RawRFP
+    Name the output image:MaskedRFP
+    Use objects or an image as a mask?:Image
+    Select object for mask:None
+    Select image for mask:wellmask_98.png
+    Invert the mask?:No
+
+IdentifyPrimaryObjects:[module_num:5|svn_version:'Unknown'|variable_revision_number:15|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:MaskedRaw
+    Name the primary objects to be identified:Welloutline
+    Typical diameter of objects, in pixel units (Min,Max):800,2000
+    Discard objects outside the diameter range?:Yes
+    Discard objects touching the border of the image?:No
+    Method to distinguish clumped objects:None
+    Method to draw dividing lines between clumped objects:Intensity
+    Size of smoothing filter:10
+    Suppress local maxima that are closer than this minimum allowed distance:7.0
+    Speed up by using lower-resolution image to find local maxima?:Yes
+    Fill holes in identified objects?:Never
+    Automatically calculate size of smoothing filter for declumping?:Yes
+    Automatically calculate minimum allowed distance between local maxima?:Yes
+    Handling of objects if excessive number of objects identified:Continue
+    Maximum number of objects:500
+    Use advanced settings?:Yes
+    Threshold setting version:12
+    Threshold strategy:Global
+    Thresholding method:Manual
+    Threshold smoothing scale:1.3488
+    Threshold correction factor:1.0
+    Lower and upper bounds on threshold:0.0,1.0
+    Manual threshold:0.5
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Minimum Cross-Entropy
+
+CorrectIlluminationCalculate:[module_num:6|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:MaskedRaw
+    Name the output image:IllumGrey2
+    Select how the illumination function is calculated:Regular
+    Dilate objects in the final averaged image?:No
+    Dilation radius:1
+    Block size:60
+    Rescale the illumination function?:Yes
+    Calculate function for each image individually, or based on all images?:Each
+    Smoothing method:Median Filter
+    Method to calculate smoothing filter size:Object size
+    Approximate object diameter:100
+    Smoothing filter size:10
+    Retain the averaged image?:No
+    Name the averaged image:IllumBlueAvg
+    Retain the dilated image?:No
+    Name the dilated image:IllumBlueDilated
+    Automatically calculate spline parameters?:Yes
+    Background mode:auto
+    Number of spline points:5
+    Background threshold:2.0
+    Image resampling factor:2.0
+    Maximum number of iterations:40
+    Residual value for convergence:0.001
+
+CorrectIlluminationApply:[module_num:7|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:MaskedRaw
+    Name the output image:CorrGrey2
+    Select the illumination function:IllumGrey2
+    Select how the illumination function is applied:Divide
+    Set output image values less than 0 equal to 0?:Yes
+    Set output image values greater than 1 equal to 1?:Yes
+
+IdentifyPrimaryObjects:[module_num:8|svn_version:'Unknown'|variable_revision_number:15|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:CorrGrey2
+    Name the primary objects to be identified:WormObjects
+    Typical diameter of objects, in pixel units (Min,Max):10,150
+    Discard objects outside the diameter range?:Yes
+    Discard objects touching the border of the image?:Yes
+    Method to distinguish clumped objects:None
+    Method to draw dividing lines between clumped objects:None
+    Size of smoothing filter:10
+    Suppress local maxima that are closer than this minimum allowed distance:7
+    Speed up by using lower-resolution image to find local maxima?:Yes
+    Fill holes in identified objects?:After both thresholding and declumping
+    Automatically calculate size of smoothing filter for declumping?:Yes
+    Automatically calculate minimum allowed distance between local maxima?:Yes
+    Handling of objects if excessive number of objects identified:Continue
+    Maximum number of objects:500
+    Use advanced settings?:Yes
+    Threshold setting version:12
+    Threshold strategy:Global
+    Thresholding method:Robust Background
+    Threshold smoothing scale:1.3488
+    Threshold correction factor:1
+    Lower and upper bounds on threshold:0.001,1.0
+    Manual threshold:0.0
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Background
+    Size of adaptive window:10
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2
+    Thresholding method:Default
+
+ConvertObjectsToImage:[module_num:9|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input objects:WormObjects
+    Name the output image:WormBinary
+    Select the color format:Binary (black & white)
+    Select the colormap:Default
+
+UntangleWorms:[module_num:10|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input binary image:WormBinary
+    Overlap style:Both
+    Name the output overlapping worm objects:OverlappingWorms
+    Name the output non-overlapping worm objects:NonOverlappingWorms
+    Training set file location:Elsewhere...|/projects/b1059/projects/Tim/cellprofiler-nf/input_data/worm_models
+    Training set file name:dauer.xml
+    Use training set weights?:Yes
+    Overlap weight:5.0
+    Leftover weight:10.0
+    Retain outlines of the overlapping objects?:Yes
+    Outline colormap?:Default
+    Name the overlapped outline image:OverlappedWormOutlines
+    Retain outlines of the non-overlapping worms?:Yes
+    Name the non-overlapped outlines image:NonoverlappedWormOutlines
+    Train or untangle worms?:Untangle
+    Minimum area percentile:1.0
+    Minimum area factor:0.85
+    Maximum area percentile:90.0
+    Maximum area factor:1.0
+    Minimum length percentile:1.0
+    Minimum length factor:0.9
+    Maximum length percentile:99.0
+    Maximum length factor:1.1
+    Maximum cost percentile:90.0
+    Maximum cost factor:1.9
+    Number of control points:21
+    Maximum radius percentile:90.0
+    Maximum radius factor:1.0
+    Maximum complexity:High
+    Custom complexity:400
+
+StraightenWorms:[module_num:11|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input untangled worm objects:NonOverlappingWorms
+    Name the output straightened worm objects:StraightenedWorms
+    Worm width:20
+    Training set file location:Elsewhere...|/projects/b1059/projects/Tim/cellprofiler-nf/input_data/worm_models
+    Training set file name:dauer.xml
+    Image count:1
+    Measure intensity distribution?:Yes
+    Number of transverse segments:1
+    Number of longitudinal stripes:3
+    Align worms?:Do not align
+    Alignment image:None
+    Select an input image to straighten:MaskedRFP
+    Name the output straightened image:StraightenedImage
+
+MeasureObjectSizeShape:[module_num:12|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select object sets to measure:NonOverlappingWorms
+    Calculate the Zernike features?:No
+    Calculate the advanced features?:No
+
+MeasureObjectIntensity:[module_num:13|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:MaskedRFP
+    Select objects to measure:NonOverlappingWorms
+
+RelateObjects:[module_num:14|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:WormObjects
+    Child objects:NonOverlappingWorms
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+RescaleIntensity:[module_num:15|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:RawBF
+    Name the output image:rescaledRawBF
+    Rescaling method:Choose specific values to be reset to the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.0,0.0625
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:None
+    Divisor value:1.0
+    Divisor measurement:None
+
+OverlayOutlines:[module_num:16|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Display outlines on a blank image?:No
+    Select image on which to display outlines:rescaledRawBF
+    Name the output image:OrigOverlay
+    Outline display mode:Color
+    Select method to determine brightness of outlines:Max of image
+    How to outline:Inner
+    Select outline color:#1DE4FA
+    Select objects to display:Welloutline
+    Select outline color:Green
+    Select objects to display:NonOverlappingWorms
+    Select outline color:red
+    Select objects to display:OverlappingWorms
+
+MaskImage:[module_num:17|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:MaskedRFP
+    Name the output image:WormMaskedRFP
+    Use objects or an image as a mask?:Objects
+    Select object for mask:NonOverlappingWorms
+    Select image for mask:None
+    Invert the mask?:No
+
+RescaleIntensity:[module_num:18|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:WormMaskedRFP
+    Name the output image:RescaledWormMaskedRFP
+    Rescaling method:Choose specific values to be reset to the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.0,0.0625
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:None
+    Divisor value:1.0
+    Divisor measurement:None
+
+RescaleIntensity:[module_num:19|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:StraightenedImage
+    Name the output image:RescaledWormMaskedRFPStraightened
+    Rescaling method:Choose specific values to be reset to the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.0,0.0625
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:None
+    Divisor value:1.0
+    Divisor measurement:None
+
+SaveImages:[module_num:20|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the type of image to save:Image
+    Select the image to save:RescaledWormMaskedRFP
+    Select method for constructing file names:From image filename
+    Select image name for file prefix:RawRFP
+    Enter single file name:OrigBlue
+    Number of digits:4
+    Append a suffix to the image file name?:Yes
+    Text to append to the image name:_NonOverlappingWorms_RFP_mask
+    Saved file format:png
+    Output file location:Default Output Folder|
+    Image bit depth:8-bit integer
+    Overwrite existing files without warning?:Yes
+    When to save:Every cycle
+    Record the file and path information to the saved image?:No
+    Create subfolders in the output folder?:No
+    Base image folder:Default Output Folder sub-folder|RFP_worm_masked
+    How to save the series:T (Time)
+    Save with lossless compression?:Yes
+
+SaveImages:[module_num:21|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the type of image to save:Image
+    Select the image to save:OrigOverlay
+    Select method for constructing file names:From image filename
+    Select image name for file prefix:RawBF
+    Enter single file name:OrigBlue
+    Number of digits:4
+    Append a suffix to the image file name?:Yes
+    Text to append to the image name:_overlay
+    Saved file format:png
+    Output file location:Default Output Folder|
+    Image bit depth:8-bit integer
+    Overwrite existing files without warning?:Yes
+    When to save:Every cycle
+    Record the file and path information to the saved image?:No
+    Create subfolders in the output folder?:No
+    Base image folder:Elsewhere...|
+    How to save the series:T (Time)
+    Save with lossless compression?:Yes
+
+SaveImages:[module_num:22|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the type of image to save:Image
+    Select the image to save:RescaledWormMaskedRFPStraightened
+    Select method for constructing file names:From image filename
+    Select image name for file prefix:RawBF
+    Enter single file name:OrigBlue
+    Number of digits:4
+    Append a suffix to the image file name?:Yes
+    Text to append to the image name:_strightened_RFP
+    Saved file format:png
+    Output file location:Default Output Folder|
+    Image bit depth:8-bit integer
+    Overwrite existing files without warning?:Yes
+    When to save:Every cycle
+    Record the file and path information to the saved image?:No
+    Create subfolders in the output folder?:No
+    Base image folder:Elsewhere...|
+    How to save the series:T (Time)
+    Save with lossless compression?:Yes
+
+ExportToSpreadsheet:[module_num:23|svn_version:'Unknown'|variable_revision_number:13|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the column delimiter:Comma (",")
+    Add image metadata columns to your object data file?:Yes
+    Add image file and folder names to your object data file?:Yes
+    Select the measurements to export:No
+    Calculate the per-image mean values for object measurements?:No
+    Calculate the per-image median values for object measurements?:No
+    Calculate the per-image standard deviation values for object measurements?:No
+    Output file location:Default Output Folder|
+    Create a GenePattern GCT file?:No
+    Select source of sample row name:Metadata
+    Select the image to use as the identifier:None
+    Select the metadata to use as the identifier:None
+    Export all measurement types?:Yes
+    Press button to select measurements:Image|ExecutionTime_08IdentifyPrimaryObjects,Image|FileName_RawBF,Image|Count_Welloutline,Image|Count_OverlappingWorms,Image|Count_WormObjects,Image|Count_NonOverlappingWorms,Image|Metadata_Magnification,Image|Metadata_Well,Image|Metadata_Date,Image|Metadata_Experiment,Image|Metadata_Plate,Image|Group_Index,Image|Group_Number,NonOverlappingWorms|Worm_MeanIntensity_StraightenedImage_T1of1_L2of3,NonOverlappingWorms|Worm_MeanIntensity_StraightenedImage_T1of1_L3of3,NonOverlappingWorms|Worm_MeanIntensity_StraightenedImage_T1of1_L1of3,NonOverlappingWorms|Worm_StdIntensity_StraightenedImage_T1of1_L3of3,NonOverlappingWorms|Worm_StdIntensity_StraightenedImage_T1of1_L1of3,NonOverlappingWorms|Worm_StdIntensity_StraightenedImage_T1of1_L2of3,NonOverlappingWorms|Worm_Length,NonOverlappingWorms|Intensity_MeanIntensityEdge_MaskedRFP,NonOverlappingWorms|Intensity_IntegratedIntensityEdge_MaskedRFP,NonOverlappingWorms|Intensity_StdIntensity_MaskedRFP,NonOverlappingWorms|Intensity_MedianIntensity_MaskedRFP,NonOverlappingWorms|Intensity_MinIntensityEdge_MaskedRFP,NonOverlappingWorms|Intensity_LowerQuartileIntensity_MaskedRFP,NonOverlappingWorms|Intensity_UpperQuartileIntensity_MaskedRFP,NonOverlappingWorms|Intensity_MaxIntensityEdge_MaskedRFP,NonOverlappingWorms|Intensity_MADIntensity_MaskedRFP,NonOverlappingWorms|Intensity_MinIntensity_MaskedRFP,NonOverlappingWorms|Intensity_MassDisplacement_MaskedRFP,NonOverlappingWorms|Intensity_MaxIntensity_MaskedRFP,NonOverlappingWorms|Intensity_MeanIntensity_MaskedRFP,NonOverlappingWorms|Intensity_StdIntensityEdge_MaskedRFP,NonOverlappingWorms|Intensity_IntegratedIntensity_MaskedRFP,NonOverlappingWorms|AreaShape_MaxFeretDiameter,NonOverlappingWorms|AreaShape_BoundingBoxMaximum_Y,NonOverlappingWorms|AreaShape_BoundingBoxMaximum_X,NonOverlappingWorms|AreaShape_MajorAxisLength,NonOverlappingWorms|AreaShape_FormFactor,NonOverlappingWorms|AreaShape_ConvexArea,NonOverlappingWorms|AreaShape_Eccentricity,NonOverlappingWorms|AreaShape_EulerNumber,NonOverlappingWorms|AreaShape_EquivalentDiameter,NonOverlappingWorms|AreaShape_BoundingBoxArea,NonOverlappingWorms|AreaShape_MinFeretDiameter,NonOverlappingWorms|AreaShape_BoundingBoxMinimum_X,NonOverlappingWorms|AreaShape_BoundingBoxMinimum_Y,NonOverlappingWorms|AreaShape_Compactness,NonOverlappingWorms|AreaShape_Perimeter,NonOverlappingWorms|AreaShape_MinorAxisLength,NonOverlappingWorms|AreaShape_Extent,NonOverlappingWorms|AreaShape_MaximumRadius,NonOverlappingWorms|AreaShape_Center_Y,NonOverlappingWorms|AreaShape_Center_X,NonOverlappingWorms|AreaShape_Orientation,NonOverlappingWorms|AreaShape_MedianRadius,NonOverlappingWorms|AreaShape_MeanRadius,NonOverlappingWorms|AreaShape_Solidity,NonOverlappingWorms|AreaShape_Area,NonOverlappingWorms|Location_MaxIntensity_X_MaskedRFP,NonOverlappingWorms|Location_MaxIntensity_Y_MaskedRFP,NonOverlappingWorms|Location_MaxIntensity_Z_MaskedRFP,NonOverlappingWorms|Location_CenterMassIntensity_X_MaskedRFP,NonOverlappingWorms|Location_CenterMassIntensity_Y_MaskedRFP,NonOverlappingWorms|Location_CenterMassIntensity_Z_MaskedRFP,NonOverlappingWorms|Location_Center_X,NonOverlappingWorms|Location_Center_Y,NonOverlappingWorms|Parent_WormObjects,NonOverlappingWorms|Number_Object_Number,Experiment|Modification_Timestamp,Experiment|Pipeline_Pipeline,Experiment|Run_Timestamp,Experiment|CellProfiler_Version
+    Representation of Nan/Inf:NaN
+    Add a prefix to file names?:No
+    Filename prefix:MyExpt_
+    Overwrite existing files without warning?:Yes
+    Data to export:Do not use
+    Combine these object measurements with those of the previous object?:No
+    File name:DATA.csv
+    Use the object name for the file name?:No
