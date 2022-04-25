@@ -1,0 +1,14 @@
+# docker/singularity
+*.sif
+*.img
+
+# nextflow
+*pipeline_info
+*.nextflow.log*
+*.nextflow
+report.*
+work/*
+
+# user
+.DS_Store
+projects*
