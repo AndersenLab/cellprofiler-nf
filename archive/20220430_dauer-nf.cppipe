@@ -2,16 +2,16 @@ CellProfiler Pipeline: http://www.cellprofiler.org
 Version:5
 DateRevision:421
 GitHash:
-ModuleCount:31
+ModuleCount:23
 HasImagePlaneDetails:False
 
-LoadData:[module_num:1|svn_version:'Unknown'|variable_revision_number:6|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+LoadData:[module_num:1|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Input data file location:Elsewhere...|METADATA_DIR
     Name of the file:METADATA_CSV_FILE
     Load images based on this data?:Yes
-    Base image location:Elsewhere...|
+    Base image location:Default Input Folder|
     Process just a range of rows?:No
-    Rows to process:1,100000
+    Rows to process:1,1
     Group images by metadata?:Yes
     Select metadata tags for grouping:Group
     Rescale intensities?:Yes
@@ -120,7 +120,7 @@ CorrectIlluminationApply:[module_num:7|svn_version:'Unknown'|variable_revision_n
     Set output image values less than 0 equal to 0?:Yes
     Set output image values greater than 1 equal to 1?:Yes
 
-IdentifyPrimaryObjects:[module_num:8|svn_version:'Unknown'|variable_revision_number:15|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+IdentifyPrimaryObjects:[module_num:8|svn_version:'Unknown'|variable_revision_number:15|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the input image:CorrGrey2
     Name the primary objects to be identified:WormObjects
     Typical diameter of objects, in pixel units (Min,Max):10,150
@@ -162,11 +162,11 @@ ConvertObjectsToImage:[module_num:9|svn_version:'Unknown'|variable_revision_numb
     Select the color format:Binary (black & white)
     Select the colormap:Default
 
-UntangleWorms:[module_num:10|svn_version:'Unknown'|variable_revision_number:2|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+UntangleWorms:[module_num:10|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the input binary image:WormBinary
     Overlap style:Both
-    Name the output overlapping worm objects:dauerMod_OverlappingWorms
-    Name the output non-overlapping worm objects:dauerMod_NonOverlappingWorms
+    Name the output overlapping worm objects:OverlappingWorms
+    Name the output non-overlapping worm objects:NonOverlappingWorms
     Training set file location:Elsewhere...|WORM_MODEL_DIR
     Training set file name:MODEL1_XML_FILE
     Use training set weights?:Yes
@@ -174,9 +174,9 @@ UntangleWorms:[module_num:10|svn_version:'Unknown'|variable_revision_number:2|sh
     Leftover weight:10.0
     Retain outlines of the overlapping objects?:Yes
     Outline colormap?:Default
-    Name the overlapped outline image:dauerMod_OverlappedWormOutlines
+    Name the overlapped outline image:OverlappedWormOutlines
     Retain outlines of the non-overlapping worms?:Yes
-    Name the non-overlapped outlines image:dauerMod_NonoverlappedWormOutlines
+    Name the non-overlapped outlines image:NonoverlappedWormOutlines
     Train or untangle worms?:Untangle
     Minimum area percentile:1.0
     Minimum area factor:0.85
@@ -194,41 +194,9 @@ UntangleWorms:[module_num:10|svn_version:'Unknown'|variable_revision_number:2|sh
     Maximum complexity:High
     Custom complexity:400
 
-UntangleWorms:[module_num:11|svn_version:'Unknown'|variable_revision_number:2|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select the input binary image:WormBinary
-    Overlap style:Both
-    Name the output overlapping worm objects:nondauerMod_OverlappingWorms
-    Name the output non-overlapping worm objects:nondauerMod_NonOverlappingWorms
-    Training set file location:Elsewhere...|WORM_MODEL_DIR
-    Training set file name:MODEL2_XML_FILE
-    Use training set weights?:Yes
-    Overlap weight:5.0
-    Leftover weight:10.0
-    Retain outlines of the overlapping objects?:Yes
-    Outline colormap?:Default
-    Name the overlapped outline image:nondauerMod_OverlappedWormOutlines
-    Retain outlines of the non-overlapping worms?:Yes
-    Name the non-overlapped outlines image:nondauerMod_NonoverlappedWormOutlines
-    Train or untangle worms?:Untangle
-    Minimum area percentile:1.0
-    Minimum area factor:0.85
-    Maximum area percentile:90.0
-    Maximum area factor:1.0
-    Minimum length percentile:1.0
-    Minimum length factor:0.9
-    Maximum length percentile:99.0
-    Maximum length factor:1.1
-    Maximum cost percentile:90.0
-    Maximum cost factor:1.9
-    Number of control points:21
-    Maximum radius percentile:90.0
-    Maximum radius factor:1.0
-    Maximum complexity:High
-    Custom complexity:400
-
-StraightenWorms:[module_num:12|svn_version:'Unknown'|variable_revision_number:3|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select the input untangled worm objects:dauerMod_NonOverlappingWorms
-    Name the output straightened worm objects:dauerMod_StraightenedWorms
+StraightenWorms:[module_num:11|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input untangled worm objects:NonOverlappingWorms
+    Name the output straightened worm objects:StraightenedWorms
     Worm width:20
     Training set file location:Elsewhere...|WORM_MODEL_DIR
     Training set file name:MODEL1_XML_FILE
@@ -239,35 +207,20 @@ StraightenWorms:[module_num:12|svn_version:'Unknown'|variable_revision_number:3|
     Align worms?:Do not align
     Alignment image:None
     Select an input image to straighten:MaskedRFP
-    Name the output straightened image:dauerMod_StraightenedImage
+    Name the output straightened image:StraightenedImage
 
-StraightenWorms:[module_num:13|svn_version:'Unknown'|variable_revision_number:3|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select the input untangled worm objects:nondauerMod_NonOverlappingWorms
-    Name the output straightened worm objects:nondauerMod_StraightenedWorms
-    Worm width:20
-    Training set file location:Elsewhere...|WORM_MODEL_DIR
-    Training set file name:MODEL2_XML_FILE
-    Image count:1
-    Measure intensity distribution?:Yes
-    Number of transverse segments:1
-    Number of longitudinal stripes:3
-    Align worms?:Do not align
-    Alignment image:None
-    Select an input image to straighten:MaskedRFP
-    Name the output straightened image:nondauerMod_StraightenedImage
-
-MeasureObjectSizeShape:[module_num:14|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select object sets to measure:dauerMod_NonOverlappingWorms, nondauerMod_NonOverlappingWorms
+MeasureObjectSizeShape:[module_num:12|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select object sets to measure:NonOverlappingWorms
     Calculate the Zernike features?:No
     Calculate the advanced features?:No
 
-MeasureObjectIntensity:[module_num:15|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureObjectIntensity:[module_num:13|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select images to measure:MaskedRFP
-    Select objects to measure:dauerMod_NonOverlappingWorms, nondauerMod_NonOverlappingWorms
+    Select objects to measure:NonOverlappingWorms
 
-RelateObjects:[module_num:16|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+RelateObjects:[module_num:14|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Parent objects:WormObjects
-    Child objects:dauerMod_NonOverlappingWorms
+    Child objects:NonOverlappingWorms
     Calculate child-parent distances?:None
     Calculate per-parent means for all child measurements?:No
     Calculate distances to other parents?:No
@@ -275,17 +228,7 @@ RelateObjects:[module_num:16|svn_version:'Unknown'|variable_revision_number:5|sh
     Name the output object:RelateObjects
     Parent name:None
 
-RelateObjects:[module_num:17|svn_version:'Unknown'|variable_revision_number:5|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Parent objects:WormObjects
-    Child objects:nondauerMod_NonOverlappingWorms
-    Calculate child-parent distances?:None
-    Calculate per-parent means for all child measurements?:No
-    Calculate distances to other parents?:No
-    Do you want to save the children with parents as a new object set?:No
-    Name the output object:RelateObjects
-    Parent name:None
-
-RescaleIntensity:[module_num:18|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+RescaleIntensity:[module_num:15|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the input image:RawBF
     Name the output image:rescaledRawBF
     Rescaling method:Choose specific values to be reset to the full intensity range
@@ -299,7 +242,7 @@ RescaleIntensity:[module_num:18|svn_version:'Unknown'|variable_revision_number:3
     Divisor value:1.0
     Divisor measurement:None
 
-OverlayOutlines:[module_num:19|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+OverlayOutlines:[module_num:16|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Display outlines on a blank image?:No
     Select image on which to display outlines:rescaledRawBF
     Name the output image:OrigOverlay
@@ -309,29 +252,21 @@ OverlayOutlines:[module_num:19|svn_version:'Unknown'|variable_revision_number:4|
     Select outline color:#1DE4FA
     Select objects to display:Welloutline
     Select outline color:Green
-    Select objects to display:nondauerMod_NonOverlappingWorms
+    Select objects to display:NonOverlappingWorms
     Select outline color:red
-    Select objects to display:dauerMod_NonOverlappingWorms
+    Select objects to display:OverlappingWorms
 
-MaskImage:[module_num:20|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MaskImage:[module_num:17|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the input image:MaskedRFP
-    Name the output image:dauerMod_WormMaskedRFP
+    Name the output image:WormMaskedRFP
     Use objects or an image as a mask?:Objects
-    Select object for mask:dauerMod_NonOverlappingWorms
+    Select object for mask:NonOverlappingWorms
     Select image for mask:None
     Invert the mask?:No
 
-MaskImage:[module_num:21|svn_version:'Unknown'|variable_revision_number:3|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select the input image:MaskedRFP
-    Name the output image:nondauerMod_WormMaskedRFP
-    Use objects or an image as a mask?:Objects
-    Select object for mask:nondauerMod_NonOverlappingWorms
-    Select image for mask:None
-    Invert the mask?:No
-
-RescaleIntensity:[module_num:22|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select the input image:dauerMod_WormMaskedRFP
-    Name the output image:dauerMod_RescaledWormMaskedRFP
+RescaleIntensity:[module_num:18|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:WormMaskedRFP
+    Name the output image:RescaledWormMaskedRFP
     Rescaling method:Choose specific values to be reset to the full intensity range
     Method to calculate the minimum intensity:Custom
     Method to calculate the maximum intensity:Custom
@@ -343,9 +278,9 @@ RescaleIntensity:[module_num:22|svn_version:'Unknown'|variable_revision_number:3
     Divisor value:1.0
     Divisor measurement:None
 
-RescaleIntensity:[module_num:23|svn_version:'Unknown'|variable_revision_number:3|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select the input image:nondauerMod_WormMaskedRFP
-    Name the output image:nondauerMod_RescaledWormMaskedRFP
+RescaleIntensity:[module_num:19|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:StraightenedImage
+    Name the output image:RescaledWormMaskedRFPStraightened
     Rescaling method:Choose specific values to be reset to the full intensity range
     Method to calculate the minimum intensity:Custom
     Method to calculate the maximum intensity:Custom
@@ -357,47 +292,19 @@ RescaleIntensity:[module_num:23|svn_version:'Unknown'|variable_revision_number:3
     Divisor value:1.0
     Divisor measurement:None
 
-RescaleIntensity:[module_num:24|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select the input image:dauerMod_StraightenedImage
-    Name the output image:dauerMod_RescaledWormMaskedRFPStraightened
-    Rescaling method:Choose specific values to be reset to the full intensity range
-    Method to calculate the minimum intensity:Custom
-    Method to calculate the maximum intensity:Custom
-    Lower intensity limit for the input image:0.0
-    Upper intensity limit for the input image:1.0
-    Intensity range for the input image:0.0,0.0625
-    Intensity range for the output image:0.0,1.0
-    Select image to match in maximum intensity:None
-    Divisor value:1.0
-    Divisor measurement:None
-
-RescaleIntensity:[module_num:25|svn_version:'Unknown'|variable_revision_number:3|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select the input image:nondauerMod_StraightenedImage
-    Name the output image:nondauerMod_RescaledWormMaskedRFPStraightened
-    Rescaling method:Choose specific values to be reset to the full intensity range
-    Method to calculate the minimum intensity:Custom
-    Method to calculate the maximum intensity:Custom
-    Lower intensity limit for the input image:0.0
-    Upper intensity limit for the input image:1.0
-    Intensity range for the input image:0.0,0.0625
-    Intensity range for the output image:0.0,1.0
-    Select image to match in maximum intensity:None
-    Divisor value:1.0
-    Divisor measurement:None
-
-SaveImages:[module_num:26|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+SaveImages:[module_num:20|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the type of image to save:Image
-    Select the image to save:dauerMod_RescaledWormMaskedRFP
+    Select the image to save:RescaledWormMaskedRFP
     Select method for constructing file names:From image filename
     Select image name for file prefix:RawRFP
     Enter single file name:OrigBlue
     Number of digits:4
     Append a suffix to the image file name?:Yes
-    Text to append to the image name:_dauerMod_NonOverlappingWorms_RFP_mask
+    Text to append to the image name:_NonOverlappingWorms_RFP_mask
     Saved file format:png
     Output file location:Default Output Folder|
     Image bit depth:8-bit integer
-    Overwrite existing files without warning?:No
+    Overwrite existing files without warning?:Yes
     When to save:Every cycle
     Record the file and path information to the saved image?:No
     Create subfolders in the output folder?:No
@@ -405,27 +312,7 @@ SaveImages:[module_num:26|svn_version:'Unknown'|variable_revision_number:16|show
     How to save the series:T (Time)
     Save with lossless compression?:Yes
 
-SaveImages:[module_num:27|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select the type of image to save:Image
-    Select the image to save:nondauerMod_RescaledWormMaskedRFP
-    Select method for constructing file names:From image filename
-    Select image name for file prefix:RawRFP
-    Enter single file name:OrigBlue
-    Number of digits:4
-    Append a suffix to the image file name?:Yes
-    Text to append to the image name:_nondauerMod_NonOverlappingWorms_RFP_mask
-    Saved file format:png
-    Output file location:Default Output Folder|
-    Image bit depth:8-bit integer
-    Overwrite existing files without warning?:No
-    When to save:Every cycle
-    Record the file and path information to the saved image?:No
-    Create subfolders in the output folder?:No
-    Base image folder:Default Output Folder sub-folder|RFP_worm_masked
-    How to save the series:T (Time)
-    Save with lossless compression?:Yes
-
-SaveImages:[module_num:28|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+SaveImages:[module_num:21|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the type of image to save:Image
     Select the image to save:OrigOverlay
     Select method for constructing file names:From image filename
@@ -437,7 +324,7 @@ SaveImages:[module_num:28|svn_version:'Unknown'|variable_revision_number:16|show
     Saved file format:png
     Output file location:Default Output Folder|
     Image bit depth:8-bit integer
-    Overwrite existing files without warning?:No
+    Overwrite existing files without warning?:Yes
     When to save:Every cycle
     Record the file and path information to the saved image?:No
     Create subfolders in the output folder?:No
@@ -445,19 +332,19 @@ SaveImages:[module_num:28|svn_version:'Unknown'|variable_revision_number:16|show
     How to save the series:T (Time)
     Save with lossless compression?:Yes
 
-SaveImages:[module_num:29|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+SaveImages:[module_num:22|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the type of image to save:Image
-    Select the image to save:dauerMod_RescaledWormMaskedRFPStraightened
+    Select the image to save:RescaledWormMaskedRFPStraightened
     Select method for constructing file names:From image filename
     Select image name for file prefix:RawBF
     Enter single file name:OrigBlue
     Number of digits:4
     Append a suffix to the image file name?:Yes
-    Text to append to the image name:_dauerMod_straightened_RFP
+    Text to append to the image name:_strightened_RFP
     Saved file format:png
     Output file location:Default Output Folder|
     Image bit depth:8-bit integer
-    Overwrite existing files without warning?:No
+    Overwrite existing files without warning?:Yes
     When to save:Every cycle
     Record the file and path information to the saved image?:No
     Create subfolders in the output folder?:No
@@ -465,27 +352,7 @@ SaveImages:[module_num:29|svn_version:'Unknown'|variable_revision_number:16|show
     How to save the series:T (Time)
     Save with lossless compression?:Yes
 
-SaveImages:[module_num:30|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select the type of image to save:Image
-    Select the image to save:nondauerMod_RescaledWormMaskedRFPStraightened
-    Select method for constructing file names:From image filename
-    Select image name for file prefix:RawBF
-    Enter single file name:OrigBlue
-    Number of digits:4
-    Append a suffix to the image file name?:Yes
-    Text to append to the image name:_nondauerMod_straightened_RFP
-    Saved file format:png
-    Output file location:Default Output Folder|
-    Image bit depth:8-bit integer
-    Overwrite existing files without warning?:No
-    When to save:Every cycle
-    Record the file and path information to the saved image?:No
-    Create subfolders in the output folder?:No
-    Base image folder:Elsewhere...|
-    How to save the series:T (Time)
-    Save with lossless compression?:Yes
-
-ExportToSpreadsheet:[module_num:31|svn_version:'Unknown'|variable_revision_number:13|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+ExportToSpreadsheet:[module_num:23|svn_version:'Unknown'|variable_revision_number:13|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the column delimiter:Comma (",")
     Add image metadata columns to your object data file?:Yes
     Add image file and folder names to your object data file?:Yes
@@ -503,7 +370,7 @@ ExportToSpreadsheet:[module_num:31|svn_version:'Unknown'|variable_revision_numbe
     Representation of Nan/Inf:NaN
     Add a prefix to file names?:No
     Filename prefix:MyExpt_
-    Overwrite existing files without warning?:No
+    Overwrite existing files without warning?:Yes
     Data to export:Do not use
     Combine these object measurements with those of the previous object?:No
     File name:DATA.csv

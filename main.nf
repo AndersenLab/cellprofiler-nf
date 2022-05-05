@@ -16,12 +16,37 @@ if( !nextflow.version.matches('>20.0') ) {
 
 // Variables
 date = new Date().format('yyyyMMdd')
-model_name = "NonOverlappingWorms" // JUST FOR NOW
+// model_name = "NonOverlappingWorms" // JUST FOR NOW
 
-// Parameters
+// Setup pipeline parameter
+params.pipeline = null
+if("${params.pipeline}" == "dauer") {
+    pipe = "dauer-nf"
+    worm_model1 = "dauerMod.xml"
+    worm_model2 = "nondauerMod.xml"
+    model_name1 = "dauerMod_NonOverlappingWorms"
+    model_name2 = "nondauerMod_NonOverlappingWorms"
+} else if( "${params.pipeline}" == "toxin" ) {
+    pipe = "toxin-nf"
+    worm_model1 = "XXX.xml"
+    worm_model2 = "XXX.xml"
+    worm_model3 = "XXX.xml"
+    worm_model4 = "XXX.xml"
+} else if(!params.pipeline) {
+    println """
+            Error: pipeline parameter not specified. Please enter --pipeline dauer or --pipeline toxin in command.
+            """
+            System.exit(1)
+} else if("${params.pipeline}" != "toxin" || "${params.pipeline}" != "dauer" ) {
+    println """
+            Error: pipeline (${params.pipeline}) does not match expected value. Please enter either dauer or toxin.
+            """
+            System.exit(1)
+}
+
+// Configure other parameters
 params.help = null
 params.debug = null
-params.pipe = "dauer-nf"
 params.project = null
 params.groups = "plate,well"
 params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
@@ -29,12 +54,11 @@ params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 params.well_mask = "${params.data_dir}/well_masks/wellmask_98.png"
 params.out = "${params.project}/Analysis-${date}"
 params.raw_pipe_dir = "${params.data_dir}/CP_pipelines"
-params.raw_pipe = "${params.raw_pipe_dir}/${params.pipe}.cppipe"
+params.raw_pipe = "${params.raw_pipe_dir}/${pipe}.cppipe"
 params.edited_pipe = "${params.out}/pipeline/pipeline.cppipe"
 params.metadata_dir = "${params.out}/metadata"
 params.metadata = "metadata.csv"
 params.worm_model_dir = "${params.data_dir}/worm_models"
-params.worm_model = "dauer.xml"
 
 /*
 ~ ~ ~ > * LOG AND HELP MESSAGE SETUP
@@ -47,7 +71,7 @@ C E L L P R O F I L E R - N F   P I P E L I N E
 '''
     log.info ""
     log.info "Project           = ${params.project}"
-    log.info "CP Pipeline       = ${params.pipe}"
+    log.info "CP pipeline       = ${params.pipeline}"
     log.info "Groups            = ${params.groups}"
     log.info "Output            = ${params.out}"
     log.info ""
@@ -62,9 +86,9 @@ C E L L P R O F I L E R - N F   P I P E L I N E
     log.info ""
     log.info "Mandatory arguments:"
     log.info "--project                      The full path to your project directory"
+    log.info "--pipeline                     The CP pipeline to use: toxin, dauer"
     log.info ""
     log.info "Optional arguments:"
-    log.info "--pipe                         CellProfiler pipeline name, dauer-nf is the default now."
     log.info "--groups                       comma separated metadata groupings for CellProfiler, default is plate,well"
     log.info "--outdir                       Output directory to place files, default is project/Analysis-date"
     log.info "--help                         This usage statement."
@@ -76,12 +100,13 @@ C E L L P R O F I L E R - N F   P I P E L I N E
 */
 
 workflow {
-    // configure inputs for CellProfiler
+    // configure inputs for CellProfiler ONLY FOR DAUER NOW NEED TO CHANGE MODELS IF OTHER
     config_cp = Channel.fromPath("${params.raw_pipe}")
         .combine(Channel.from("${params.metadata_dir}"))
         .combine(Channel.from("${params.metadata}"))
         .combine(Channel.from("${params.worm_model_dir}"))
-        .combine(Channel.from("${params.worm_model}"))
+        .combine(Channel.from(worm_model1)) // edit here
+        .combine(Channel.from(worm_model2)) // edit here
         .combine(Channel.fromPath("${params.bin_dir}/config_CP_input.R"))
         .combine(Channel.from("${params.project}"))
         .combine(Channel.from("${params.well_mask}"))
@@ -106,7 +131,8 @@ workflow {
     proc_cp = runCP.out.cp_output
         .last() // This ensures that all items are emitted from runCP
         .combine(Channel.from("${params.out}"))
-        .combine(Channel.from(model_name)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
+        .combine(Channel.from(model_name1)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
+        .combine(Channel.from(model_name2)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
         .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output.R"))
         //.view()
 
@@ -123,7 +149,7 @@ process config_CP_input {
     publishDir "${params.out}/groups", mode: 'copy', pattern: "groups.tsv"
 
     input:
-        tuple file(raw_pipe), val(meta_dir), val(meta), val(model_dir), val(model),
+        tuple file(raw_pipe), val(meta_dir), val(meta), val(model_dir), val(model1), val(model2),
         file(config_script), val(project), val(mask), val(group), val(edited_pipe), val(out)
 
     output:
@@ -137,7 +163,8 @@ process config_CP_input {
         awk '{gsub(/METADATA_DIR/,"${meta_dir}"); print}' ${raw_pipe} | \\
         awk '{gsub(/METADATA_CSV_FILE/,"${meta}"); print}' | \\
         awk '{gsub(/WORM_MODEL_DIR/,"${model_dir}"); print}' | \\
-        awk '{gsub(/MODEL1_XML_FILE/,"${model}"); print}' > pipeline.cppipe
+        awk '{gsub(/MODEL1_XML_FILE/,"${model1}"); print}' | \\
+        awk '{gsub(/MODEL2_XML_FILE/,"${model2}"); print}' > pipeline.cppipe
 
         # Configure metadata and groups for CellProfiller with config_CP_input.R
         Rscript --vanilla ${config_script} ${project} ${mask} ${group} ${edited_pipe} ${out}
@@ -177,7 +204,7 @@ process proc_CP_output {
     //publishDir "${params.out}/processed_data", mode: 'copy', pattern: "*.RData"
     
     input:
-        tuple val(cp_output), val(out_dir), val(model_name), file(proc_CP_out_script)
+        tuple val(cp_output), val(out_dir), val(model_name1), val(model_name2), file(proc_CP_out_script)
 
     output:
         //path "*.RData", emit: cp_out_dat
@@ -191,7 +218,10 @@ process proc_CP_output {
         mkdir ${out_dir}/processed_images
 
         # find .csv files, concatenate them, and write new file
-        find ${out_dir}/CP_output -type f -name '${model_name}.csv' -print0 | xargs -0 awk 'FNR>1 || NR==1 {print}' > ${out_dir}/processed_data/${model_name}.csv
+        find ${out_dir}/CP_output -type f -name '${model_name1}.csv' -print0 | xargs -0 awk 'FNR>1 || NR==1 {print}' > ${out_dir}/processed_data/${model_name1}.csv
+        
+        # find .csv files, concatenate them, and write new file
+        find ${out_dir}/CP_output -type f -name '${model_name2}.csv' -print0 | xargs -0 awk 'FNR>1 || NR==1 {print}' > ${out_dir}/processed_data/${model_name2}.csv
         
         # move all the output images to process_images directory END WITH /?
         find ${out_dir}/CP_output -name '*.png' -exec mv {} ${out_dir}/processed_images \\;
@@ -220,6 +250,7 @@ workflow.onComplete {
     { Parameters }
     ---------------------------
     Project                                 = ${params.project}
+    Pipeline Used                           = ${params.pipeline}
     Result Directory                        = ${params.out}
     """
 
