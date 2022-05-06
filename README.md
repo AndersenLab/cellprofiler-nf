@@ -2,9 +2,11 @@
 A nextflow pipeline to run various CellProfiler pipelines on raw images and process output data.
 
 ## Pipeline overview
-<p align="center">
-  ![](img/cellprofiler-nf_workflow.svg)
-</p>
+![img](img/cellprofiler-nf_workflow.svg#center)
+img[src*='#center'] {
+    display: block;
+    margin: auto;
+}
 
 ## QUEST usage
 ```bash
