@@ -8,7 +8,8 @@
 *.nextflow
 report.*
 work/*
-CP_test/Analysis*
+debug/20220501_dauerDebug/Analysis*
+debug/20220501_toxinDebug/Analysis*
 
 # user
 .DS_Store
