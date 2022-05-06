@@ -1,6 +1,9 @@
 # cellprofiler-nf
 A nextflow pipeline to run various CellProfiler pipelines on raw images and process output data.
 
+## Pipeline overview
+![](img/cellprofiler-nf_workflow.svg)
+
 ## QUEST usage
 ```bash
 # clone the repo
