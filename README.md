@@ -59,8 +59,8 @@ C E L L P R O F I L E R - N F   P I P E L I N E
     └── ...
 ``` 
 The files in the `raw_image` subdirectory must conform to the folloing naming conventions:\
-    - **dauer -** Date-Experiment Name-Plate-Magnification_Well_Wavelength.TIF\
-    - **toxin -** Date-Experiment Name-Plate-Magnification_Well.TIF\
+|   **dauer -** Date-Experiment Name-Plate-Magnification_Well_Wavelength.TIF\
+|   **toxin -** Date-Experiment Name-Plate-Magnification_Well.TIF\
 
 ## Output directory structure
 By default `cellprofiler-nf` will output results to a subdirectory in the project folder named `Analysis-{current date}` with the following directory structures.
