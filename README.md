@@ -23,23 +23,21 @@ nextflow run main.nf --pipeline toxin --project <your repo path>/debug/20220501_
 ```
 
 ## cellprofiler-nf help
-```ruby
-log.info '''
+```
 C E L L P R O F I L E R - N F   P I P E L I N E
 ===============================================
-'''
-    log.info "Usage:"
-    log.info "The typical command for running the pipeline is as follows:"
-    log.info "nextflow run main.nf --pipeline <CellProfiler pipeline to use> --project <path to your project directory>"
-    log.info ""
-    log.info "Mandatory arguments:"
-    log.info "--project                      The path to your project directory"
-    log.info "--pipeline                     The CP pipeline to use: toxin, dauer"
-    log.info ""
-    log.info "Optional arguments:"
-    log.info "--groups                       comma separated metadata groupings for CellProfiler, default is plate,well"
-    log.info "--outdir                       Output directory to place files, default is project/Analysis-{current date}"
-    log.info "--help                         This usage statement."
+Usage:
+The typical command for running the pipeline is as follows:
+nextflow run main.nf --pipeline <CellProfiler pipeline to use> --project <path to your project directory>
+
+Mandatory arguments:
+--project                      The path to your project directory
+--pipeline                     The CP pipeline to use: toxin, dauer
+
+Optional arguments:
+--groups                       comma separated metadata groupings for CellProfiler, default is plate,well
+--outdir                       Output directory to place files, default is project/Analysis-{current date}
+--help                         This usage statement.
 ```
 
 ## Input directory structure
