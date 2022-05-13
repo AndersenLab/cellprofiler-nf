@@ -1,5 +1,5 @@
 # cellprofiler-nf
-A nextflow pipeline to run various CellProfiler pipelines on raw images and process output data.
+*A nextflow pipeline to run CellProfiler pipelines on raw images and process output*
 
 ## Pipeline overview
 ![](img/cellprofiler-nf.drawio.svg)
