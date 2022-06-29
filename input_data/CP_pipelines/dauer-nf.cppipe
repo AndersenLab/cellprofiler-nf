@@ -397,7 +397,7 @@ SaveImages:[module_num:26|svn_version:'Unknown'|variable_revision_number:16|show
     Saved file format:png
     Output file location:Default Output Folder|
     Image bit depth:8-bit integer
-    Overwrite existing files without warning?:No
+    Overwrite existing files without warning?:Yes
     When to save:Every cycle
     Record the file and path information to the saved image?:No
     Create subfolders in the output folder?:No
@@ -417,7 +417,7 @@ SaveImages:[module_num:27|svn_version:'Unknown'|variable_revision_number:16|show
     Saved file format:png
     Output file location:Default Output Folder|
     Image bit depth:8-bit integer
-    Overwrite existing files without warning?:No
+    Overwrite existing files without warning?:Yes
     When to save:Every cycle
     Record the file and path information to the saved image?:No
     Create subfolders in the output folder?:No
@@ -437,7 +437,7 @@ SaveImages:[module_num:28|svn_version:'Unknown'|variable_revision_number:16|show
     Saved file format:png
     Output file location:Default Output Folder|
     Image bit depth:8-bit integer
-    Overwrite existing files without warning?:No
+    Overwrite existing files without warning?:Yes
     When to save:Every cycle
     Record the file and path information to the saved image?:No
     Create subfolders in the output folder?:No
@@ -457,7 +457,7 @@ SaveImages:[module_num:29|svn_version:'Unknown'|variable_revision_number:16|show
     Saved file format:png
     Output file location:Default Output Folder|
     Image bit depth:8-bit integer
-    Overwrite existing files without warning?:No
+    Overwrite existing files without warning?:Yes
     When to save:Every cycle
     Record the file and path information to the saved image?:No
     Create subfolders in the output folder?:No
@@ -477,7 +477,7 @@ SaveImages:[module_num:30|svn_version:'Unknown'|variable_revision_number:16|show
     Saved file format:png
     Output file location:Default Output Folder|
     Image bit depth:8-bit integer
-    Overwrite existing files without warning?:No
+    Overwrite existing files without warning?:Yes
     When to save:Every cycle
     Record the file and path information to the saved image?:No
     Create subfolders in the output folder?:No
@@ -503,7 +503,7 @@ ExportToSpreadsheet:[module_num:31|svn_version:'Unknown'|variable_revision_numbe
     Representation of Nan/Inf:NaN
     Add a prefix to file names?:No
     Filename prefix:MyExpt_
-    Overwrite existing files without warning?:No
+    Overwrite existing files without warning?:Yes
     Data to export:Do not use
     Combine these object measurements with those of the previous object?:No
     File name:DATA.csv
