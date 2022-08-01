@@ -41,7 +41,7 @@ Optional arguments:
 ```
 
 ## Input directory structure
-`cellprofiler-nf` requires that the input project directory contains a `raw_images` subdirectory that holds all the images to be processed by CellProfiler. See the examples below for dauer and toxin projects.
+`cellprofiler-nf` requires that the input project directory contains a `raw_images` subdirectory that holds all the images to be processed by CellProfiler. See the examples below for dauer and toxin projects. The AndersenLab/easyXpress R package can be used to help organize image files exported from the imager into the required directory structure. See `easyXpress::tidyProject` for details. 
 ### dauer input
 ```bash
 20220501_dauerDebug/
