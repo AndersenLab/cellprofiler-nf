@@ -29,23 +29,7 @@ date = new Date().format('yyyyMMdd')
 
 // Setup pipeline parameter
 params.pipeline = null
-if("${params.pipeline}" == "dauer") {
-    pipe = "dauer-nf"
-    worm_model1 = "dauerMod.xml"
-    worm_model2 = "nondauerMod.xml"
-    model_name1 = "dauerMod_NonOverlappingWorms"
-    model_name2 = "nondauerMod_NonOverlappingWorms"
-} else if( "${params.pipeline}" == "toxin" ) {
-    pipe = "toxin-nf"
-    worm_model1 = "L4_N2_HB101_100w.xml"
-    worm_model2 = "L2L3_N2_HB101_100w.xml"
-    worm_model3 = "L1_N2_HB101_100w.xml"
-    worm_model4 = "MDHD.xml"
-    model_name1 = "L4_N2_HB101_100w_NonOverlappingWorms"
-    model_name2 = "L2L3_N2_HB101_100w_NonOverlappingWorms"
-    model_name3 = "L1_N2_HB101_100w_NonOverlappingWorms"
-    model_name4 = "MDHD_NonOverlappingWorms"
-} else if(!params.pipeline) {
+if(!params.pipeline) {
     println """
             Error: pipeline parameter not specified. Please enter --pipeline dauer or --pipeline toxin in command.
             """
