@@ -97,13 +97,17 @@ C E L L P R O F I L E R - N F   P I P E L I N E
 */
 
 workflow {
-    
+    input_data = Channel.fromPath("${params.raw_pipe}")
+        .combine(Channel.from("${params.metadata_dir}"))
+        .combine(Channel.from("${params.metadata}"))
+        .combine(Channel.from("${params.worm_model_dir}"))
+        
     if("${params.pipeline}" == "dauer") {
-    dauer_workflow()
+    dauer_workflow(input_data)
     }
 
     if("${params.pipeline}" == "toxin") {
-        toxin_workflow()
+        toxin_workflow(input_data)
     }
 }
 

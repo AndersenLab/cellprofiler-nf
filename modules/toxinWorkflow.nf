@@ -29,10 +29,11 @@ model_name3 = "L1_N2_HB101_100w_NonOverlappingWorms"
 model_name4 = "MDHD_NonOverlappingWorms"
 
 workflow toxin_workflow {
-    config_cp = Channel.fromPath("${params.raw_pipe}")
-        .combine(Channel.from("${params.metadata_dir}"))
-        .combine(Channel.from("${params.metadata}"))
-        .combine(Channel.from("${params.worm_model_dir}"))
+    take:
+    input_data_channel
+
+    main:
+    config_cp = input_data_channel
         .combine(Channel.from(worm_model1)) // edit here
         .combine(Channel.from(worm_model2)) // edit here
         .combine(Channel.from(worm_model3)) // edit here

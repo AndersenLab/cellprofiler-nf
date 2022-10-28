@@ -25,10 +25,11 @@ model_name1 = "dauerMod_NonOverlappingWorms"
 model_name2 = "nondauerMod_NonOverlappingWorms"
 
 workflow dauer_workflow {
-    config_cp = Channel.fromPath("${params.raw_pipe}")
-        .combine(Channel.from("${params.metadata_dir}"))
-        .combine(Channel.from("${params.metadata}"))
-        .combine(Channel.from("${params.worm_model_dir}"))
+    take:
+    input_data_channel
+
+    main:
+    config_cp = input_data_channel
         .combine(Channel.from(worm_model1)) // edit here
         .combine(Channel.from(worm_model2)) // edit here
         .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_dauer.R"))
