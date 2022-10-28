@@ -16,11 +16,6 @@ process runCP {
         stdout emit: cp_output 
     //tuple file("*.csv"), file("*.png"), emit: cp_output
 
-    """
-        # Run cellprofiler headless
-        cellprofiler -c -r -p ${pipeline} \
-        -g ${group} \
-        -o ${output}
-
-    """
+    script:
+    template 'runCP.sh'
 }
