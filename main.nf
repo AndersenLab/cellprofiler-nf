@@ -101,9 +101,14 @@ workflow {
         .combine(Channel.from("${params.metadata_dir}"))
         .combine(Channel.from("${params.metadata}"))
         .combine(Channel.from("${params.worm_model_dir}"))
-        
+        .combine(Channel.from("${params.project}"))
+        .combine(Channel.from("${params.well_mask}"))
+        .combine(Channel.from("${params.groups}"))
+        .combine(Channel.from("${params.edited_pipe}"))
+        .combine(Channel.from("${params.out}"))
+
     if("${params.pipeline}" == "dauer") {
-    dauer_workflow(input_data)
+        dauer_workflow(input_data)
     }
 
     if("${params.pipeline}" == "toxin") {

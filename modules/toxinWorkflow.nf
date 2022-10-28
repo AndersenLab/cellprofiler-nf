@@ -38,12 +38,9 @@ workflow toxin_workflow {
         .combine(Channel.from(worm_model2)) // edit here
         .combine(Channel.from(worm_model3)) // edit here
         .combine(Channel.from(worm_model4)) // edit here
-        .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_toxin.R"))
-        .combine(Channel.from("${params.project}"))
-        .combine(Channel.from("${params.well_mask}"))
-        .combine(Channel.from("${params.groups}"))
-        .combine(Channel.from("${params.edited_pipe}"))
-        .combine(Channel.from("${params.out}")) | config_CP_input_toxin
+        .combine(
+            Channel.fromPath("${params.bin_dir}/config_CP_input_toxin.R")
+            ) | config_CP_input_toxin
         //.view()
 
     // Run CellProfiler

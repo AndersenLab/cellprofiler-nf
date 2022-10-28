@@ -32,12 +32,9 @@ workflow dauer_workflow {
     config_cp = input_data_channel
         .combine(Channel.from(worm_model1)) // edit here
         .combine(Channel.from(worm_model2)) // edit here
-        .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_dauer.R"))
-        .combine(Channel.from("${params.project}"))
-        .combine(Channel.from("${params.well_mask}"))
-        .combine(Channel.from("${params.groups}"))
-        .combine(Channel.from("${params.edited_pipe}"))
-        .combine(Channel.from("${params.out}")) | config_CP_input_dauer
+        .combine(
+            Channel.fromPath("${params.bin_dir}/config_CP_input_dauer.R")
+            ) | config_CP_input_dauer
         //.view()
 
      // Run CellProfiler
