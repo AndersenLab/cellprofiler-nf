@@ -12,16 +12,12 @@ if( !nextflow.version.matches('>20.0') ) {
 
 // INCLUDE modules
 include {
-    config_CP_input_dauer
-    config_CP_input_toxin
-} from './modules/process_input.nf'
+    dauer_workflow
+} from './modules/dauerWorkflow.nf'
 include {
-    proc_CP_output_dauer
-    proc_CP_output_toxin
-} from './modules/process_output.nf'
-include {
-    runCP
-} from './modules/cellprofiler.nf'
+    toxin_workflow
+} from './modules/toxinWorkflow.nf'
+
 
 /*
 ~ ~ ~ > * PARAMETERS SETUP
@@ -119,81 +115,11 @@ C E L L P R O F I L E R - N F   P I P E L I N E
 workflow {
     
     if("${params.pipeline}" == "dauer") {
-    // configure inputs for CellProfiler ONLY FOR DAUER NOW NEED TO CHANGE MODELS IF OTHER
-    config_cp = Channel.fromPath("${params.raw_pipe}")
-        .combine(Channel.from("${params.metadata_dir}"))
-        .combine(Channel.from("${params.metadata}"))
-        .combine(Channel.from("${params.worm_model_dir}"))
-        .combine(Channel.from(worm_model1)) // edit here
-        .combine(Channel.from(worm_model2)) // edit here
-        .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_dauer.R"))
-        .combine(Channel.from("${params.project}"))
-        .combine(Channel.from("${params.well_mask}"))
-        .combine(Channel.from("${params.groups}"))
-        .combine(Channel.from("${params.edited_pipe}"))
-        .combine(Channel.from("${params.out}")) | config_CP_input_dauer
-        //.view()
-
-     // Run CellProfiler
-    groups = config_CP_input_dauer.out.groups_file
-        .splitCsv(header:true, sep: "\t")
-        .map { row ->
-                [row.group, file("${row.pipeline}"), file("${row.output}")]
-            }
-        //.view()
-    
-    runCP(groups)
-    
-    // Preprocess CellProfiler output files
-    proc_cp = runCP.out.cp_output
-        .last() // This ensures that all items are emitted from runCP
-        .combine(Channel.from("${params.out}"))
-        .combine(Channel.from(model_name1)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-        .combine(Channel.from(model_name2)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-        .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_dauer.R"))
-        //.view()
-
-    proc_CP_output_dauer(proc_cp)
+    dauer_workflow()
     }
 
     if("${params.pipeline}" == "toxin") {
-    // configure inputs for CellProfiler ONLY FOR DAUER NOW NEED TO CHANGE MODELS IF OTHER
-    config_cp = Channel.fromPath("${params.raw_pipe}")
-        .combine(Channel.from("${params.metadata_dir}"))
-        .combine(Channel.from("${params.metadata}"))
-        .combine(Channel.from("${params.worm_model_dir}"))
-        .combine(Channel.from(worm_model1)) // edit here
-        .combine(Channel.from(worm_model2)) // edit here
-        .combine(Channel.from(worm_model3)) // edit here
-        .combine(Channel.from(worm_model4)) // edit here
-        .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_toxin.R"))
-        .combine(Channel.from("${params.project}"))
-        .combine(Channel.from("${params.well_mask}"))
-        .combine(Channel.from("${params.groups}"))
-        .combine(Channel.from("${params.edited_pipe}"))
-        .combine(Channel.from("${params.out}")) | config_CP_input_toxin
-        //.view()
-
-    // Run CellProfiler
-    groups = config_CP_input_toxin.out.groups_file
-        .splitCsv(header:true, sep: "\t")
-        .map { row ->
-                [row.group, file("${row.pipeline}"), file("${row.output}")]
-            }
-        //.view()
-    
-    runCP(groups)
-    
-    // Preprocess CellProfiler output files
-    proc_cp = runCP.out.cp_output
-        .last() // This ensures that all items are emitted from runCP
-        .combine(Channel.from("${params.out}"))
-        .combine(Channel.from(model_name1)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-        .combine(Channel.from(model_name2)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-        .combine(Channel.from(model_name3)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-        .combine(Channel.from(model_name4)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-        .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_toxin.R")) | proc_CP_output_toxin
-        //.view()
+        toxin_workflow()
     }
 }
 
