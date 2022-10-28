@@ -8,10 +8,13 @@ process runCP {
     label "cellpro"
 
     input:
-        tuple val(group), file(pipeline), file(output)
+    tuple val(group), 
+        file(pipeline), 
+        file(output)
 
     output:
-        stdout emit: cp_output //tuple file("*.csv"), file("*.png"), emit: cp_output
+        stdout emit: cp_output 
+    //tuple file("*.csv"), file("*.png"), emit: cp_output
 
     """
         # Run cellprofiler headless
