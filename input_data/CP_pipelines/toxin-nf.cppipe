@@ -6,8 +6,8 @@ ModuleCount:22
 HasImagePlaneDetails:False
 
 LoadData:[module_num:1|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Input data file location:Elsewhere...|METADATA_DIR
-    Name of the file:METADATA_CSV_FILE
+    Input data file location:Elsewhere...|.
+    Name of the file:metadata.csv
     Load images based on this data?:Yes
     Base image location:Default Input Folder|
     Process just a range of rows?:No
@@ -159,8 +159,8 @@ UntangleWorms:[module_num:9|svn_version:'Unknown'|variable_revision_number:2|sho
     Overlap style:Both
     Name the output overlapping worm objects:L4_N2_HB101_100w_OverlappingWorms
     Name the output non-overlapping worm objects:L4_N2_HB101_100w_NonOverlappingWorms
-    Training set file location:Elsewhere...|WORM_MODEL_DIR
-    Training set file name:MODEL1_XML_FILE
+    Training set file location:Elsewhere...|input_data/worm_models
+    Training set file name:L4_N2_HB101_100w.xml
     Use training set weights?:Yes
     Overlap weight:5.0
     Leftover weight:10.0
@@ -191,8 +191,8 @@ UntangleWorms:[module_num:10|svn_version:'Unknown'|variable_revision_number:2|sh
     Overlap style:Both
     Name the output overlapping worm objects:L2L3_N2_HB101_100w_OverlappingWorms
     Name the output non-overlapping worm objects:L2L3_N2_HB101_100w_NonOverlappingWorms
-    Training set file location:Elsewhere...|WORM_MODEL_DIR
-    Training set file name:MODEL2_XML_FILE
+    Training set file location:Elsewhere...|input_data/worm_models
+    Training set file name:L2L3_N2_HB101_100w.xml
     Use training set weights?:Yes
     Overlap weight:5.0
     Leftover weight:10.0
@@ -223,8 +223,8 @@ UntangleWorms:[module_num:11|svn_version:'Unknown'|variable_revision_number:2|sh
     Overlap style:Both
     Name the output overlapping worm objects:L1_N2_HB101_100w_OverlappingWorms
     Name the output non-overlapping worm objects:L1_N2_HB101_100w_NonOverlappingWorms
-    Training set file location:Elsewhere...|WORM_MODEL_DIR
-    Training set file name:MODEL3_XML_FILE
+    Training set file location:Elsewhere...|input_data/worm_models
+    Training set file name:L1_N2_HB101_100w.xml
     Use training set weights?:Yes
     Overlap weight:5.0
     Leftover weight:10.0
@@ -255,8 +255,8 @@ UntangleWorms:[module_num:12|svn_version:'Unknown'|variable_revision_number:2|sh
     Overlap style:Both
     Name the output overlapping worm objects:MDHD_OverlappingWorms
     Name the output non-overlapping worm objects:MDHD_NonOverlappingWorms
-    Training set file location:Elsewhere...|WORM_MODEL_DIR
-    Training set file name:MODEL4_XML_FILE
+    Training set file location:Elsewhere...|input_data/worm_models
+    Training set file name:MDHD.xml
     Use training set weights?:Yes
     Overlap weight:5.0
     Leftover weight:10.0
