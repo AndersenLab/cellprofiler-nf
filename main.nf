@@ -11,13 +11,12 @@ if( !nextflow.version.matches('>20.0') ) {
 }
 
 // INCLUDE modules
-include {
-    dauer_workflow
-} from './modules/dauerWorkflow.nf'
-include {
-    toxin_workflow
-} from './modules/toxinWorkflow.nf'
-
+// include {
+//     dauer_workflow
+// } from './modules/dauerWorkflow.nf'
+// include {
+//     toxin_workflow
+// } from './modules/toxinWorkflow.nf'
 
 /*
 ~ ~ ~ > * PARAMETERS SETUP
@@ -25,7 +24,6 @@ include {
 
 // Variables
 date = new Date().format('yyyyMMdd')
-// model_name = "NonOverlappingWorms" // JUST FOR NOW
 
 // Setup pipeline parameter
 params.pipeline = null
@@ -34,32 +32,44 @@ if(!params.pipeline) {
             Error: pipeline parameter not specified. Please enter --pipeline dauer or --pipeline toxin in command.
             """
             System.exit(1)
-} else if("${params.pipeline}" != "toxin" || "${params.pipeline}" != "dauer" ) {
+} else if(params.pipeline != "toxin" && params.pipeline != "dauer" ) {
     println """
             Error: pipeline (${params.pipeline}) does not match expected value. Please enter either dauer or toxin.
             """
             System.exit(1)
 }
 
-// Configure other parameters
-params.help = null
-params.debug = null
-params.project = null
-params.groups = "plate,well"
-params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
-params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
-params.well_mask = "${params.data_dir}/well_masks/wellmask_98.png"
-params.out = "${params.project}/Analysis-${date}"
-params.raw_pipe_dir = "${params.data_dir}/CP_pipelines"
-params.raw_pipe = "${params.raw_pipe_dir}/${pipe}.cppipe"
-params.edited_pipe = "${params.out}/pipeline/pipeline.cppipe"
-params.metadata_dir = "${params.out}/metadata"
-params.metadata = "metadata.csv"
-params.worm_model_dir = "${params.data_dir}/worm_models"
+date = new Date().format('yyyyMMdd')
 
-/*
-~ ~ ~ > * LOG AND HELP MESSAGE SETUP
-*/
+// Help:
+params.help = null
+// project directory
+params.project = null
+// Groups to use
+params.groups = "plate,well"
+// directory with input data
+params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
+// mask for the well
+params.well_mask = "input_data/well_masks/wellmask_98.png"
+// location to put output files
+params.out = "${params.project}/Analysis-${date}"
+
+params.project_name = params.project.split("/").last()
+params.project_tag = "Analysis-${date}"
+
+params.container__general = "docker://andersenlab/nemascan:20220411181933701519"
+params.container__cellprofiler = "cellprofiler/cellprofiler:4.2.1"
+
+include {
+    listFiles
+    makeMetadata
+} from './modules/process_input.nf'
+include {
+    runCP
+} from './modules/cellprofiler.nf'
+include {
+    proc_CP_output
+} from './modules/process_output.nf'
 
 if (!params.help) {
 log.info '''
@@ -67,7 +77,8 @@ C E L L P R O F I L E R - N F   P I P E L I N E
 ===============================================
 '''
     log.info ""
-    log.info "Project           = ${params.project}"
+    log.info "Projcect          = ${params.project_name}"
+    log.info "Project Dir       = ${params.project}"
     log.info "CP pipeline       = ${params.pipeline}"
     log.info "Groups            = ${params.groups}"
     log.info "Output            = ${params.out}"
@@ -86,39 +97,37 @@ C E L L P R O F I L E R - N F   P I P E L I N E
     log.info "--pipeline                     The CP pipeline to use: toxin, dauer"
     log.info ""
     log.info "Optional arguments:"
-    log.info "--groups                       comma separated metadata groupings for CellProfiler, default is plate,well"
-    log.info "--outdir                       Output directory to place files, default is project/Analysis-{current date}"
+    log.info "--project_name                 A name for the project.  Default detects from the project directory."
+    log.info "--groups                       Comma separated metadata groupings for CellProfiler, default is plate,well"
+    log.info "--out                          Output directory to place files, default is project/Analysis-{current date}"
     log.info "--help                         This usage statement."
         exit 1
     }
 
-/*
-~ ~ ~ > * WORKFLOW
-*/
-
 workflow {
-    input_data = Channel.fromPath("${params.raw_pipe}")
-        .combine(Channel.from("${params.metadata_dir}"))
-        .combine(Channel.from("${params.metadata}"))
-        .combine(Channel.from("${params.worm_model_dir}"))
-        .combine(Channel.from("${params.project}"))
-        .combine(Channel.from("${params.well_mask}"))
-        .combine(Channel.from("${params.groups}"))
-        .combine(Channel.from("${params.edited_pipe}"))
-        .combine(Channel.from("${params.out}"))
+    in_data_dir = Channel.fromPath("${params.project}")
 
-    if("${params.pipeline}" == "dauer") {
-        dauer_workflow(input_data)
-    }
-
-    if("${params.pipeline}" == "toxin") {
-        toxin_workflow(input_data)
-    }
+    listFiles(in_data_dir)
+    makeMetadata(listFiles.out)
+    groups = makeMetadata.out
+        .splitCsv(header: true)
+        .map {
+            row -> ["${row.Metadata_Group}", 
+                "input_data/CP_pipelines/${params.pipeline}-nf.cppipe"]
+        }
+    runCP_input = groups
+        .combine(in_data_dir)
+        .combine(
+            Channel.fromPath(
+                "${workflow.projectDir}/input_data"
+            )
+        )
+        .combine(makeMetadata.out)
+    runCP(runCP_input)
+    concat_outputs = runCP.out.output_files.toList()
+    proc_CP_output(concat_outputs)
 }
 
-/*
-~ ~ ~ > * GENERATE REPORT
-*/
 workflow.onComplete {
 
     summary = """
@@ -133,7 +142,8 @@ workflow.onComplete {
     Git info: $workflow.repository - $workflow.revision [$workflow.commitId]
     { Parameters }
     ---------------------------
-    Project                                 = ${params.project}
+    Project                                 = ${params.project_name}
+    Project Dir                             = ${params.project}
     Pipeline Used                           = ${params.pipeline}
     Result Directory                        = ${params.out}
     """
