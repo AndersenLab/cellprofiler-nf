@@ -29,7 +29,7 @@ meta1 <- read_delim(
   extract(file_path, into = "file", remove = FALSE, regex = ".*/(.*)$") %>% 
   extract(file, 
           remove = FALSE, 
-          regex = "^(.*)-(.*)-(.*)-(.*)_(.*)_(.*_\\.(.*)$", 
+          regex = "^(.*)-(.*)-(.*)-(.*)_(.*)_(.*)_\\.(.*)$", 
           into = c("date","exp","plate","mag","well","wave","TIF")) %>% 
   select(-TIF) %>%
   dplyr::mutate(row = stringr::str_extract(well, pattern = "[A-Z]"),
