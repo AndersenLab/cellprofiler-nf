@@ -16,7 +16,6 @@ library(data.table)
 # 4 - the edited pipeline path
 # 5 - the out path
 args <- commandArgs(trailingOnly = TRUE)
-
 #==============================================================================#
 # Make Metadata NEEDS TO BE ADAPATBLE TO MULTIPLE WAVELENGTHS
 #==============================================================================#
@@ -29,7 +28,7 @@ meta1 <- read_delim(
   extract(file_path, into = "file", remove = FALSE, regex = ".*/(.*)$") %>% 
   extract(file, 
           remove = FALSE, 
-          regex = "^(.*)-(.*)-(.*)-(.*)_(.*)_(.*)_\\.(.*)$", 
+          regex = "^(.*)-(.*)-(.*)-(.*)_(.*)_(.*)\\.(.*)$", 
           into = c("date","exp","plate","mag","well","wave","TIF")) %>% 
   select(-TIF) %>%
   dplyr::mutate(row = stringr::str_extract(well, pattern = "[A-Z]"),
@@ -43,7 +42,7 @@ meta1$group <- apply( meta1[, groups], 1, paste, collapse = "_")
 
 # add image types and set metadata names - hardcode image names - needs to be flexible for multiple pipeline profiles
 meta2 <- meta1 %>%
-tidyr::pivot_wider(names_from = wave, values_from = c(file, file_path)) %>%
+  tidyr::pivot_wider(names_from = wave, values_from = c(file, file_path), ) %>%
   dplyr::rename(Image_FileName_RawBF = file_w1,
                 Image_PathName_RawBF = file_path_w1,  
                 Image_FileName_RawRFP = file_w2,
@@ -63,8 +62,10 @@ tidyr::pivot_wider(names_from = wave, values_from = c(file, file_path)) %>%
     Metadata_Well = well,
     Metadata_Group = group,
     Metadata_Magnification = mag,
-    Image_FileName_RawBF = file,
+    Image_FileName_RawBF,
     Image_PathName_RawBF,
+    Image_FileName_RawRFP,
+    Image_PathName_RawRFP,
     Image_FileName_wellmask_98.png,
     Image_PathName_wellmask_98.png)
 
