@@ -1,24 +1,25 @@
-# /usr/bin/Rscript
+#!/usr/bin/env -S Rscript --vanilla
 library(fs)
 library(dplyr)
 library(tidyr)
 library(tibble)
 library(stringr)
 library(readr)
-library(glue)
 library(purrr)
 
 #==============================================================================#
 # Arguments
 #==============================================================================#
 # 1 - out directory path
+# 2 - project name
+# 3 - run stamp
 args <- commandArgs(trailingOnly = TRUE)
 
 #==============================================================================#
 # Read CP output data
 #==============================================================================#
 # get the output for each model
-dir <- glue::glue("{args[1]}/processed_data")
+dir <- "processed_data"
 
 # read in files and manipulate with  
 model_df <- dir %>%
@@ -36,10 +37,7 @@ model_df_list <- split.data.frame(model_df, model_df$model)
 lapply(seq_along(model_df_list), function(i) assign(names(model_df_list)[i], model_df_list[[i]], envir = .GlobalEnv))
 
 # save as R.data
-proj_name <- stringr::str_extract(args[1], pattern = "[^\\/]+(?=(?:\\/[^\\/]+){1}$)")
-run_stamp <- stringr::str_extract(args[1], pattern = "([^/]+$)")
+proj_name <- args[1]
+run_stamp <- args[2]
 save(list = c(ls(pattern = "model.outputs")),
-     file = glue::glue("{args[1]}/processed_data/{proj_name}_{run_stamp}.RData"))
-
-# clean up extra CP_outputs for now
-system(command = glue::glue("if [ -d {args[1]}/CP_output ]; then rm -Rf {args[1]}/CP_output; fi"))
+     file = paste0("processed_data/", args[1], "_", args[2], ".RData"))
