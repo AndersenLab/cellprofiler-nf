@@ -341,7 +341,7 @@ MeasureObjectIntensity:[module_num:16|svn_version:'Unknown'|variable_revision_nu
     Select objects to measure:L1_N2_HB101_100w_NonOverlappingWorms, L2L3_N2_HB101_100w_NonOverlappingWorms, L4_N2_HB101_100w_NonOverlappingWorms, MDHD_NonOverlappingWorms
 
 MeasureObjectSizeShape:[module_num:17|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
-    Select object sets to measure:L1_N2_HB101_100w_NonOverlappingWorms, L2L3_N2_HB101_100w_NonOverlappingWorms, L4_N2_HB101_100w_NonOverlappingWorms, MDHD_NonOverlappingWorms
+    Select object sets to measure:L1_N2_HB101_100w_NonOverlappingWorms, L2L3_N2_HB101_100w_NonOverlappingWorms, L4_N2_HB101_100w_NonOverlappingWorms, MDHD_NonOverlappingWorms, WormObjects
     Calculate the Zernike features?:No
     Calculate the advanced features?:No
 

@@ -14,3 +14,6 @@ debug/20220501_toxinDebug/Analysis*
 # user
 .DS_Store
 projects*
+scripts*
+data*
+plots*
