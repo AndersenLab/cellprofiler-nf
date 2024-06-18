@@ -31,9 +31,8 @@ git clone https://github.com/AndersenLab/cellprofiler-nf.git
 cd cellprofiler-nf
 
 # setup environment
-module load python/anaconda3.6
+module load nextflow/23.04.03
 module load singularity
-source activate /projects/b1059/software/conda_envs/nf23_env/
 
 # example run with dauer pipeline parameter
 nextflow run main.nf --pipeline dauer --project <output project dir> --debug -profile quest
