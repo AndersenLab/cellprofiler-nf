@@ -181,11 +181,11 @@ workflow {
     // Preprocess CellProfiler output files
     proc_cp = runCP.out.cp_output
         .last() // This ensures that all items are emitted from runCP
-        .combine(Channel.from("${params.out}"))
-        .combine(Channel.from(model_name1)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-        .combine(Channel.from(model_name2)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-        .combine(Channel.from(model_name3)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-        .combine(Channel.from(model_name4)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
+        .combine(Channel.fromPath("${params.out}"))
+        .combine(Channel.of(model_name1)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
+        .combine(Channel.of(model_name2)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
+        .combine(Channel.of(model_name3)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
+        .combine(Channel.of(model_name4)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
         .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_toxin.R"))
         //.view()
         
@@ -350,7 +350,7 @@ process proc_CP_output_toxin {
     label "R"
  
     input:
-        tuple val(cp_output), val(out_dir), val(model_name1), val(model_name2),
+        tuple val(cp_output), path(out_dir), val(model_name1), val(model_name2),
         val(model_name3), val(model_name4), file(proc_CP_out_script)
 
     output:
