@@ -4,6 +4,26 @@
 ## Pipeline overview
 ![](img/cellprofiler-nf.drawio.svg)
 
+## Rockfish usage
+```bash
+# clone the repo
+git clone https://github.com/AndersenLab/cellprofiler-nf.git
+cd cellprofiler-nf
+
+# setup environment
+module load anaconda/2022.05
+module load singularity
+source activate /data/eande106/software/conda_envs/nf23_env/
+
+# example run with dauer pipeline parameter
+nextflow run main.nf --pipeline dauer --project <output project dir> --debug -profile rockfish
+
+# example run with toxin pipeline parameter
+nextflow run main.nf --pipeline toxin --project <output project dir> --debug -profile rockfish
+```
+
+Using debug will copy the raw images to your specified project folder prior to analysis. The `-profile` option isn't actually needed here since the default is the rockfish profile.
+
 ## QUEST usage
 ```bash
 # clone the repo
@@ -13,14 +33,16 @@ cd cellprofiler-nf
 # setup environment
 module load python/anaconda3.6
 module load singularity
-source activate /projects/b1059/software/conda_envs/nf20_env/
+source activate /projects/b1059/software/conda_envs/nf23_env/
 
 # example run with dauer pipeline parameter
-nextflow run main.nf --pipeline dauer --project <your repo path>/debug/20220501_dauerDebug
+nextflow run main.nf --pipeline dauer --project <output project dir> --debug -profile quest
 
 # example run with toxin pipeline parameter
-nextflow run main.nf --pipeline toxin --project <your repo path>/debug/20220501_toxinDebug
+nextflow run main.nf --pipeline toxin --project <output project dir> --debug -profile quest
 ```
+
+Using debug will copy the raw images to your specified project folder prior to analysis.
 
 ## cellprofiler-nf help
 ```
@@ -63,11 +85,14 @@ The files in the `raw_image` subdirectory must conform to the folloing naming co
 |   **dauer -** Date-Experiment Name-Plate-Magnification_Well_Wavelength.TIF\
 |   **toxin -** Date-Experiment Name-Plate-Magnification_Well.TIF
 
+It is possible that there will be thumbnails included. These will automatically be ignored. It is also possible that a 36-character hash will be added to the end of each file name, prior to the file extension. This will be stripped by the pipeline and will not cause issues.
+
 ## Output directory structure
 By default `cellprofiler-nf` will output results to a subdirectory in the project folder named `Analysis-{current date}` with the following directory structures.
+
 ### dauer output
 ```bash
-20220501_dauerDebug/
+<project folder name>/
 ├── raw_images
 ├── Analysis-{current date}
     └── pipeline
@@ -82,10 +107,11 @@ By default `cellprofiler-nf` will output results to a subdirectory in the projec
         └── 20220501_dauerDebug-p002-m2X_A01_w2_dauerMod_NonOverlappingWorms_RFP_mask.png
         └── 20220501_dauerDebug-p002-m2X_A01_w2_nondauerMod_NonOverlappingWorms_RFP_mask.png
         └── ...
-``` 
+```
+
 ### toxin output
 ```bash
-20220501_toxinDebug/
+<project folder name>/
 ├── raw_images
 ├── Analysis-{current date}
     └── pipeline

@@ -104,149 +104,181 @@ C E L L P R O F I L E R - N F   P I P E L I N E
 */
 
 workflow {
+
+    if (params.debug) {
+        Channel.fromPath("${workflow.projectDir}")
+            .combine(Channel.of("${params.pipeline}")) | prep_debug
+    }
     
     if("${params.pipeline}" == "dauer") {
     // configure inputs for CellProfiler ONLY FOR DAUER NOW NEED TO CHANGE MODELS IF OTHER
     config_cp = Channel.fromPath("${params.raw_pipe}")
-        .combine(Channel.from("${params.metadata_dir}"))
-        .combine(Channel.from("${params.metadata}"))
-        .combine(Channel.from("${params.worm_model_dir}"))
-        .combine(Channel.from(worm_model1)) // edit here
-        .combine(Channel.from(worm_model2)) // edit here
+        .combine(Channel.of("${params.metadata_dir}"))
+        .combine(Channel.of("${params.metadata}"))
+        .combine(Channel.of("${params.worm_model_dir}"))
+        .combine(Channel.of(worm_model1)) // edit here
+        .combine(Channel.of(worm_model2)) // edit here
         .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_dauer.R"))
-        .combine(Channel.from("${params.project}"))
-        .combine(Channel.from("${params.well_mask}"))
-        .combine(Channel.from("${params.groups}"))
-        .combine(Channel.from("${params.edited_pipe}"))
-        .combine(Channel.from("${params.out}")) | config_CP_input_dauer
+        .combine(Channel.fromPath("${params.project}"))
+        .combine(Channel.of("${params.well_mask}"))
+        .combine(Channel.of("${params.groups}"))
+        .combine(Channel.of("${params.edited_pipe}"))
+        .combine(Channel.of("${params.out}")) | config_CP_input_dauer
         //.view()
 
-//      // Run CellProfiler
-//     groups = config_CP_input_dauer.out.groups_file
-//         .splitCsv(header:true, sep: "\t")
-//         .map { row ->
-//                 [row.group, file("${row.pipeline}"), file("${row.output}")]
-//             }
-//         //.view()
+     // Run CellProfiler
+    groups = config_CP_input_dauer.out.groups_file
+        .splitCsv(header:true, sep: "\t")
+        .map { row ->
+                [row.group, file("${row.pipeline}"), file("${row.output}")]
+            }
+        .combine(Channel.fromPath("${params.project}"))
+        //.view()
     
-//     runCP(groups)
+    runCP(groups)
     
-//     // Preprocess CellProfiler output files
-//     proc_cp = runCP.out.cp_output
-//         .last() // This ensures that all items are emitted from runCP
-//         .combine(Channel.from("${params.out}"))
-//         .combine(Channel.from(model_name1)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-//         .combine(Channel.from(model_name2)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-//         .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_dauer.R"))
-//         //.view()
+    // Preprocess CellProfiler output files
+    proc_cp = runCP.out.cp_output
+        .last() // This ensures that all items are emitted from runCP
+        .combine(Channel.fromPath("${params.out}"))
+        .combine(Channel.of(model_name1)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
+        .combine(Channel.of(model_name2)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
+        .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_dauer.R"))
+        //.view()
 
-//     proc_CP_output_dauer(proc_cp)
-//     }
+    proc_CP_output_dauer(proc_cp)
+    }
 
-//     if("${params.pipeline}" == "toxin") {
-//     // configure inputs for CellProfiler ONLY FOR DAUER NOW NEED TO CHANGE MODELS IF OTHER
-//     config_cp = Channel.fromPath("${params.raw_pipe}")
-//         .combine(Channel.from("${params.metadata_dir}"))
-//         .combine(Channel.from("${params.metadata}"))
-//         .combine(Channel.from("${params.worm_model_dir}"))
-//         .combine(Channel.from(worm_model1)) // edit here
-//         .combine(Channel.from(worm_model2)) // edit here
-//         .combine(Channel.from(worm_model3)) // edit here
-//         .combine(Channel.from(worm_model4)) // edit here
-//         .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_toxin.R"))
-//         .combine(Channel.from("${params.project}"))
-//         .combine(Channel.from("${params.well_mask}"))
-//         .combine(Channel.from("${params.groups}"))
-//         .combine(Channel.from("${params.edited_pipe}"))
-//         .combine(Channel.from("${params.out}")) | config_CP_input_toxin
-//         //.view()
+    if("${params.pipeline}" == "toxin") {
+    // configure inputs for CellProfiler ONLY FOR DAUER NOW NEED TO CHANGE MODELS IF OTHER
+    config_cp = Channel.fromPath("${params.raw_pipe}")
+        .combine(Channel.of("${params.metadata_dir}"))
+        .combine(Channel.of("${params.metadata}"))
+        .combine(Channel.of("${params.worm_model_dir}"))
+        .combine(Channel.of(worm_model1)) // edit here
+        .combine(Channel.of(worm_model2)) // edit here
+        .combine(Channel.of(worm_model3)) // edit here
+        .combine(Channel.of(worm_model4)) // edit here
+        .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_toxin.R"))
+        .combine(Channel.fromPath("${params.project}"))
+        .combine(Channel.of("${params.well_mask}"))
+        .combine(Channel.of("${params.groups}"))
+        .combine(Channel.of("${params.edited_pipe}"))
+        .combine(Channel.of("${params.out}")) | config_CP_input_toxin
+        //.view()
 
-//     // Run CellProfiler
-//     groups = config_CP_input_toxin.out.groups_file
-//         .splitCsv(header:true, sep: "\t")
-//         .map { row ->
-//                 [row.group, file("${row.pipeline}"), file("${row.output}")]
-//             }
-//         //.view()
+    // Run CellProfiler
+    groups = config_CP_input_toxin.out.groups_file
+        .splitCsv(header:true, sep: "\t")
+        .map { row ->
+                [row.group, file("${row.pipeline}"), file("${row.output}")]
+            }
+        .combine(Channel.fromPath("${params.project}"))
+        //.view()
     
-//     runCP(groups)
+    runCP(groups)
     
-//     // Preprocess CellProfiler output files
-//     proc_cp = runCP.out.cp_output
-//         .last() // This ensures that all items are emitted from runCP
-//         .combine(Channel.from("${params.out}"))
-//         .combine(Channel.from(model_name1)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-//         .combine(Channel.from(model_name2)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-//         .combine(Channel.from(model_name3)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-//         .combine(Channel.from(model_name4)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-//         .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_toxin.R")) | proc_CP_output_toxin
-//         //.view()
+    // Preprocess CellProfiler output files
+    proc_cp = runCP.out.cp_output
+        .last() // This ensures that all items are emitted from runCP
+        .combine(Channel.from("${params.out}"))
+        .combine(Channel.from(model_name1)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
+        .combine(Channel.from(model_name2)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
+        .combine(Channel.from(model_name3)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
+        .combine(Channel.from(model_name4)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
+        .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_toxin.R"))
+        //.view()
+        
+    proc_CP_output_toxin(proc_cp)
     }
 }
 
-// /*
-// ~ ~ ~ > * CONFIGURE FILES FOR CELLPROFILER
-// */
+/*
+~ ~ ~ > * CONFIGURE FILES FOR CELLPROFILER
+*/
 
-// process config_CP_input_dauer {
-//     publishDir "${params.out}/pipeline", mode: 'copy', pattern: "*.cppipe"
-//     publishDir "${params.out}/metadata", mode: 'copy', pattern: "metadata.csv"
-//     publishDir "${params.out}/groups", mode: 'copy', pattern: "groups.tsv"
+process prep_debug {
 
-//     input:
-//         tuple file(raw_pipe), val(meta_dir), val(meta), val(model_dir), val(model1), val(model2),
-//         file(config_script), val(project), val(mask), val(group), val(edited_pipe), val(out)
+    executor "local"
+    container null
 
-//     output:
-//         path "*.cppipe", emit: cp_pipeline_file
-//         path "metadata.csv", emit: metadata_file
-//         path "groups.tsv", emit: groups_file
+    publishDir "${params.out}/..", mode: 'copy', pattern: "raw_images/*.TIF"
+
+    input:
+        tuple path(source_dir), val(pipeline)
+    output:
+        path "raw_images/*.TIF"
+
+    """
+    cp -r ${source_dir}/debug/*${pipeline}*/raw_images ./
+    """
+}
+
+process config_CP_input_dauer {
+    publishDir "${params.out}/pipeline", mode: 'copy', pattern: "*.cppipe"
+    publishDir "${params.out}/metadata", mode: 'copy', pattern: "metadata.csv"
+    publishDir "${params.out}/groups", mode: 'copy', pattern: "groups.tsv"
+
+    label "xs"
+    label "R"
+
+    input:
+        tuple file(raw_pipe), val(meta_dir), val(meta), val(model_dir), val(model1), val(model2),
+        file(config_script), path(project), val(mask), val(group), val(edited_pipe), val(out)
+
+    output:
+        path "*.cppipe", emit: cp_pipeline_file
+        path "metadata.csv", emit: metadata_file
+        path "groups.tsv", emit: groups_file
         
 
-//     """
-//         # Configure the raw pipeline for CellProfiler
-//         awk '{gsub(/METADATA_DIR/,"${meta_dir}"); print}' ${raw_pipe} | \\
-//         awk '{gsub(/METADATA_CSV_FILE/,"${meta}"); print}' | \\
-//         awk '{gsub(/WORM_MODEL_DIR/,"${model_dir}"); print}' | \\
-//         awk '{gsub(/MODEL1_XML_FILE/,"${model1}"); print}' | \\
-//         awk '{gsub(/MODEL2_XML_FILE/,"${model2}"); print}' > pipeline.cppipe
+    """
+        # Configure the raw pipeline for CellProfiler
+        awk '{gsub(/METADATA_DIR/,"${meta_dir}"); print}' ${raw_pipe} | \\
+        awk '{gsub(/METADATA_CSV_FILE/,"${meta}"); print}' | \\
+        awk '{gsub(/WORM_MODEL_DIR/,"${model_dir}"); print}' | \\
+        awk '{gsub(/MODEL1_XML_FILE/,"${model1}"); print}' | \\
+        awk '{gsub(/MODEL2_XML_FILE/,"${model2}"); print}' > pipeline.cppipe
 
-//         # Configure metadata and groups for CellProfiller with config_CP_input.R
-//         Rscript --vanilla ${config_script} ${project} ${mask} ${group} ${edited_pipe} ${out}
+        # Configure metadata and groups for CellProfiller with config_CP_input.R
+        Rscript --vanilla ${config_script} ${project} ${mask} ${group} ${edited_pipe} ${out}
 
-//     """
-// }
+    """
+}
 
-// process config_CP_input_toxin {
-//     publishDir "${params.out}/pipeline", mode: 'copy', pattern: "*.cppipe"
-//     publishDir "${params.out}/metadata", mode: 'copy', pattern: "metadata.csv"
-//     publishDir "${params.out}/groups", mode: 'copy', pattern: "groups.tsv"
+process config_CP_input_toxin {
+    publishDir "${params.out}/pipeline", mode: 'copy', pattern: "*.cppipe"
+    publishDir "${params.out}/metadata", mode: 'copy', pattern: "metadata.csv"
+    publishDir "${params.out}/groups", mode: 'copy', pattern: "groups.tsv"
 
-//     input:
-//         tuple file(raw_pipe), val(meta_dir), val(meta), val(model_dir), val(model1), val(model2), val(model3), val(model4),
-//         file(config_script), val(project), val(mask), val(group), val(edited_pipe), val(out)
+    label "xs"
+    label "R"
 
-//     output:
-//         path "*.cppipe", emit: cp_pipeline_file
-//         path "metadata.csv", emit: metadata_file
-//         path "groups.tsv", emit: groups_file
+    input:
+        tuple file(raw_pipe), val(meta_dir), val(meta), val(model_dir), val(model1), val(model2), val(model3), val(model4),
+        file(config_script), path(project), val(mask), val(group), val(edited_pipe), val(out)
+
+    output:
+        path "*.cppipe", emit: cp_pipeline_file
+        path "metadata.csv", emit: metadata_file
+        path "groups.tsv", emit: groups_file
         
 
-//     """
-//         # Configure the raw pipeline for CellProfiler
-//         awk '{gsub(/METADATA_DIR/,"${meta_dir}"); print}' ${raw_pipe} | \\
-//         awk '{gsub(/METADATA_CSV_FILE/,"${meta}"); print}' | \\
-//         awk '{gsub(/WORM_MODEL_DIR/,"${model_dir}"); print}' | \\
-//         awk '{gsub(/MODEL1_XML_FILE/,"${model1}"); print}' | \\
-//         awk '{gsub(/MODEL2_XML_FILE/,"${model2}"); print}' | \\
-//         awk '{gsub(/MODEL3_XML_FILE/,"${model3}"); print}' | \\
-//         awk '{gsub(/MODEL4_XML_FILE/,"${model4}"); print}' > pipeline.cppipe
+    """
+        # Configure the raw pipeline for CellProfiler
+        awk '{gsub(/METADATA_DIR/,"${meta_dir}"); print}' ${raw_pipe} | \\
+        awk '{gsub(/METADATA_CSV_FILE/,"${meta}"); print}' | \\
+        awk '{gsub(/WORM_MODEL_DIR/,"${model_dir}"); print}' | \\
+        awk '{gsub(/MODEL1_XML_FILE/,"${model1}"); print}' | \\
+        awk '{gsub(/MODEL2_XML_FILE/,"${model2}"); print}' | \\
+        awk '{gsub(/MODEL3_XML_FILE/,"${model3}"); print}' | \\
+        awk '{gsub(/MODEL4_XML_FILE/,"${model4}"); print}' > pipeline.cppipe
 
-//         # Configure metadata and groups for CellProfiller with config_CP_input.R
-//         Rscript --vanilla ${config_script} ${project} ${mask} ${group} ${edited_pipe} ${out}
+        # Configure metadata and groups for CellProfiller with config_CP_input.R
+        Rscript --vanilla ${config_script} ${project} ${mask} ${group} ${edited_pipe} ${out}
 
-//     """
-// }
+    """
+}
 
 /*
 ~ ~ ~ > * RUN CELLPROFILER
@@ -255,9 +287,10 @@ workflow {
 process runCP {
 
     label "cellpro"
+    label "ml"
 
     input:
-        tuple val(group), file(pipeline), file(output)
+        tuple val(group), file(pipeline), path(output), path(projectdir)
 
     output:
         stdout emit: cp_output //tuple file("*.csv"), file("*.png"), emit: cp_output
@@ -278,9 +311,12 @@ process runCP {
 process proc_CP_output_dauer {
 
     //publishDir "${params.out}/processed_data", mode: 'copy', pattern: "*.RData"
-    
+  
+    label "md"
+    label "R"
+  
     input:
-        tuple val(cp_output), val(out_dir), val(model_name1), val(model_name2), file(proc_CP_out_script)
+        tuple val(cp_output), path(out_dir), val(model_name1), val(model_name2), file(proc_CP_out_script)
 
     output:
         //path "*.RData", emit: cp_out_dat
@@ -309,7 +345,10 @@ process proc_CP_output_toxin {
 
     //publishDir "${params.out}/processed_data", mode: 'copy', pattern: "*.RData"
     //publishDir "${params.out}/processed_data", mode: 'copy'
-    
+   
+    label "md"
+    label "R"
+ 
     input:
         tuple val(cp_output), val(out_dir), val(model_name1), val(model_name2),
         val(model_name3), val(model_name4), file(proc_CP_out_script)
