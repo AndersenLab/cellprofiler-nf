@@ -19,6 +19,8 @@ nextflow run AndersenLab/cellprofiler-nf --pipeline toxin --project <project_dir
 
 The project directory should contain a folder named `raw_images` that contains all of your raw images for a given project. The exception is using the `debug` option which will copy the sample data `raw_images` folder to your specified project folder prior to analysis. The `-profile` option isn't actually needed here since the default is the rockfish profile.
 
+    Note - It is a good idea to add the `-latest` argument to make sure that you aren't using a cached workflow repo that has become outdated 
+
 ## QUEST usage
 ```bash
 # setup environment
@@ -33,6 +35,8 @@ nextflow run AndersenLab/cellprofiler-nf --pipeline toxin --project <project_dir
 
 The project directory should contain a folder named `raw_images` that contains all of your raw images for a given project. The exception is using the `debug` option which will copy the sample data `raw_images` folder to your specified project folder prior to analysis.
 
+    Note - It is a good idea to add the `-latest` argument to make sure that you aren't using a cached workflow repo that has become outdated
+    
 ## cellprofiler-nf help
 ```
 C E L L P R O F I L E R - N F   P I P E L I N E
