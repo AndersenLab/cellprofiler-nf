@@ -6,42 +6,32 @@
 
 ## Rockfish usage
 ```bash
-# clone the repo
-git clone https://github.com/AndersenLab/cellprofiler-nf.git
-cd cellprofiler-nf
-
 # setup environment
-module load anaconda/2022.05
-module load singularity
+module load anaconda
 source activate /data/eande106/software/conda_envs/nf23_env/
 
 # example run with dauer pipeline parameter
-nextflow run main.nf --pipeline dauer --project <output project dir> --debug -profile rockfish
+nextflow run AndersenLab/cellprofiler-nf --pipeline dauer --project <project_dir> --debug -profile rockfish
 
 # example run with toxin pipeline parameter
-nextflow run main.nf --pipeline toxin --project <output project dir> --debug -profile rockfish
+nextflow run AndersenLab/cellprofiler-nf --pipeline toxin --project <project_dir> --debug -profile rockfish
 ```
 
-Using debug will copy the raw images to your specified project folder prior to analysis. The `-profile` option isn't actually needed here since the default is the rockfish profile.
+The project directory should contain a folder named `raw_images` that contains all of your raw images for a given project. The exception is using the `debug` option which will copy the sample data `raw_images` folder to your specified project folder prior to analysis. The `-profile` option isn't actually needed here since the default is the rockfish profile.
 
 ## QUEST usage
 ```bash
-# clone the repo
-git clone https://github.com/AndersenLab/cellprofiler-nf.git
-cd cellprofiler-nf
-
 # setup environment
 module load nextflow/23.04.03
-module load singularity
 
 # example run with dauer pipeline parameter
-nextflow run main.nf --pipeline dauer --project <output project dir> --debug -profile quest
+nextflow run AndersenLab/cellprofiler-nf --pipeline dauer --project <project_dir> --debug -profile quest
 
 # example run with toxin pipeline parameter
-nextflow run main.nf --pipeline toxin --project <output project dir> --debug -profile quest
+nextflow run AndersenLab/cellprofiler-nf --pipeline toxin --project <project_dir> --debug -profile quest
 ```
 
-Using debug will copy the raw images to your specified project folder prior to analysis.
+The project directory should contain a folder named `raw_images` that contains all of your raw images for a given project. The exception is using the `debug` option which will copy the sample data `raw_images` folder to your specified project folder prior to analysis.
 
 ## cellprofiler-nf help
 ```

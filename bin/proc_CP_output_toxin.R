@@ -49,7 +49,7 @@ lapply(seq_along(model_df_list), function(i) assign(names(model_df_list)[i], mod
 proj_name <- stringr::str_extract(args[1], pattern = "[^\\/]+(?=(?:\\/[^\\/]+){1}$)")
 run_stamp <- stringr::str_extract(args[1], pattern = "([^/]+$)")
 save(list = c(ls(pattern = "model.outputs|wormobj")),
-     file = glue::glue("{args[1]}/processed_data/{proj_name}_{run_stamp}.RData"))
+     file = glue::glue("{proj_name}_{run_stamp}.RData"))
 
 # clean up extra CP_outputs for now
-system(command = glue::glue("if [ -d {args[1]}/CP_output ]; then rm -Rf {args[1]}/CP_output; fi"))
+# system(command = glue::glue("if [ -d {args[1]}/CP_output ]; then rm -Rf {args[1]}/CP_output; fi"))

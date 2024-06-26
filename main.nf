@@ -57,7 +57,9 @@ if(!params.project) {
 params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
 params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 params.well_mask = "${params.data_dir}/well_masks/wellmask_98.png"
-params.out = "${params.project}/Analysis-${date}"
+params.analysisDir = "Analysis-${date}"
+params.outdir = params.project
+params.out = "${params.outdir}/${params.analysisDir}"
 params.raw_pipe_dir = "${params.data_dir}/CP_pipelines"
 params.raw_pipe = "${params.raw_pipe_dir}/${pipe}.cppipe"
 params.edited_pipe = "${params.out}/pipeline/pipeline.cppipe"
@@ -111,11 +113,9 @@ workflow {
     }
     
     if("${params.pipeline}" == "dauer") {
-    // configure inputs for CellProfiler ONLY FOR DAUER NOW NEED TO CHANGE MODELS IF OTHER
+    // configure inputs for CellProfiler
     config_cp = Channel.fromPath("${params.raw_pipe}")
-        .combine(Channel.of("${params.metadata_dir}"))
         .combine(Channel.of("${params.metadata}"))
-        .combine(Channel.of("${params.worm_model_dir}"))
         .combine(Channel.of(worm_model1)) // edit here
         .combine(Channel.of(worm_model2)) // edit here
         .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_dauer.R"))
@@ -124,37 +124,47 @@ workflow {
         .combine(Channel.of("${params.groups}"))
         .combine(Channel.of("${params.edited_pipe}"))
         .combine(Channel.of("${params.out}")) | config_CP_input_dauer
-        //.view()
 
-     // Run CellProfiler
-    groups = config_CP_input_dauer.out.groups_file
+    // Run CellProfiler
+    CP_in = config_CP_input_dauer.out.groups_file
         .splitCsv(header:true, sep: "\t")
         .map { row ->
-                [row.group, file("${row.pipeline}"), file("${row.output}")]
+                [row.group, file("${row.pipeline}")]
             }
+    CP_in.combine(Channel.fromPath("${params.out}"))
         .combine(Channel.fromPath("${params.project}"))
-        //.view()
+        .combine(config_CP_input_dauer.out.metadata_file)
+        .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model1}"))
+        .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model2}"))
+        .combine(Channel.of(null))
+        .combine(Channel.of(null)) | runCP
     
-    runCP(groups)
+    // Compile csv files by model
+    split_csv =  { item -> [ item.baseName + ".csv", item ] }
+    runCP.out.cp_csv.flatten() | dos2unix
+    nonoverlapping = dos2unix.out
+        .collect()
+        .flatten()
     
-    // Preprocess CellProfiler output files
-    proc_cp = runCP.out.cp_output
-        .last() // This ensures that all items are emitted from runCP
-        .combine(Channel.fromPath("${params.out}"))
-        .combine(Channel.of(model_name1)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-        .combine(Channel.of(model_name2)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-        .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_dauer.R"))
-        //.view()
+    nonoverlapping_joined = nonoverlapping
+        .collectFile(split_csv, skip:1, keepHeader:true, storeDir:"${params.out}/processed_data")
+        .collate(3)
 
-    proc_CP_output_dauer(proc_cp)
+    csv_files = nonoverlapping_joined
+        .buffer(1)
+        .last()
+        .combine(Channel.of("${params.analysisDir}"))
+        .combine(Channel.fromPath("${params.outdir}"))
+        .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_dauer.R"))
+
+    // Preprocess CellProfiler output files
+    proc_CP_output(csv_files)
     }
 
     if("${params.pipeline}" == "toxin") {
-    // configure inputs for CellProfiler ONLY FOR DAUER NOW NEED TO CHANGE MODELS IF OTHER
+    // configure inputs for CellProfiler
     config_cp = Channel.fromPath("${params.raw_pipe}")
-        .combine(Channel.of("${params.metadata_dir}"))
         .combine(Channel.of("${params.metadata}"))
-        .combine(Channel.of("${params.worm_model_dir}"))
         .combine(Channel.of(worm_model1)) // edit here
         .combine(Channel.of(worm_model2)) // edit here
         .combine(Channel.of(worm_model3)) // edit here
@@ -168,28 +178,39 @@ workflow {
         //.view()
 
     // Run CellProfiler
-    groups = config_CP_input_toxin.out.groups_file
+    CP_in = config_CP_input_toxin.out.groups_file
         .splitCsv(header:true, sep: "\t")
         .map { row ->
-                [row.group, file("${row.pipeline}"), file("${row.output}")]
+                [row.group, file("${row.pipeline}")]
             }
+    CP_in.combine(Channel.fromPath("${params.out}"))
         .combine(Channel.fromPath("${params.project}"))
-        //.view()
+        .combine(config_CP_input_toxin.out.metadata_file)
+        .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model1}"))
+        .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model2}"))
+        .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model3}"))
+        .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model4}")) | runCP
     
-    runCP(groups)
+    // Compile csv files by model
+    split_csv =  { item -> [ item.baseName + ".csv", item ] }
+    runCP.out.cp_csv.flatten() | dos2unix
+    nonoverlapping = dos2unix.out
+        .collect()
+        .flatten()
     
-    // Preprocess CellProfiler output files
-    proc_cp = runCP.out.cp_output
-        .last() // This ensures that all items are emitted from runCP
-        .combine(Channel.fromPath("${params.out}"))
-        .combine(Channel.of(model_name1)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-        .combine(Channel.of(model_name2)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-        .combine(Channel.of(model_name3)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
-        .combine(Channel.of(model_name4)) // HARDCODE VARIABLE NOW MAKE DEPENDENT ON PROFILE
+    nonoverlapping_joined = nonoverlapping
+        .collectFile(split_csv, skip:1, keepHeader:true, storeDir:"${params.out}/processed_data")
+        .collate(5)
+
+    csv_files = nonoverlapping_joined
+        .buffer(1)
+        .last()
+        .combine(Channel.of("${params.analysisDir}"))
+        .combine(Channel.fromPath("${params.outdir}"))
         .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_toxin.R"))
-        //.view()
-        
-    proc_CP_output_toxin(proc_cp)
+
+    // Preprocess CellProfiler output files
+    proc_CP_output(csv_files)
     }
 }
 
@@ -223,8 +244,9 @@ process config_CP_input_dauer {
     label "R"
 
     input:
-        tuple file(raw_pipe), val(meta_dir), val(meta), val(model_dir), val(model1), val(model2),
-        file(config_script), path(project), val(mask), val(group), val(edited_pipe), val(out)
+        tuple file(raw_pipe), val(meta), val(model1), val(model2), \
+              file(config_script), path(project), val(mask), val(group), \
+              val(edited_pipe), val(out)
 
     output:
         path "*.cppipe", emit: cp_pipeline_file
@@ -234,9 +256,9 @@ process config_CP_input_dauer {
 
     """
         # Configure the raw pipeline for CellProfiler
-        awk '{gsub(/METADATA_DIR/,"${meta_dir}"); print}' ${raw_pipe} | \\
+        awk '{gsub(/METADATA_DIR/,"."); print}' ${raw_pipe} | \\
         awk '{gsub(/METADATA_CSV_FILE/,"${meta}"); print}' | \\
-        awk '{gsub(/WORM_MODEL_DIR/,"${model_dir}"); print}' | \\
+        awk '{gsub(/WORM_MODEL_DIR/,"."); print}' | \\
         awk '{gsub(/MODEL1_XML_FILE/,"${model1}"); print}' | \\
         awk '{gsub(/MODEL2_XML_FILE/,"${model2}"); print}' > pipeline.cppipe
 
@@ -255,8 +277,9 @@ process config_CP_input_toxin {
     label "R"
 
     input:
-        tuple file(raw_pipe), val(meta_dir), val(meta), val(model_dir), val(model1), val(model2), val(model3), val(model4),
-        file(config_script), path(project), val(mask), val(group), val(edited_pipe), val(out)
+        tuple file(raw_pipe), val(meta), val(model1), val(model2), val(model3), \
+              val(model4), file(config_script), path(project), val(mask), \
+              val(group), val(edited_pipe), val(out)
 
     output:
         path "*.cppipe", emit: cp_pipeline_file
@@ -266,9 +289,9 @@ process config_CP_input_toxin {
 
     """
         # Configure the raw pipeline for CellProfiler
-        awk '{gsub(/METADATA_DIR/,"${meta_dir}"); print}' ${raw_pipe} | \\
+        awk '{gsub(/METADATA_DIR/,"."); print}' ${raw_pipe} | \\
         awk '{gsub(/METADATA_CSV_FILE/,"${meta}"); print}' | \\
-        awk '{gsub(/WORM_MODEL_DIR/,"${model_dir}"); print}' | \\
+        awk '{gsub(/WORM_MODEL_DIR/,"."); print}' | \\
         awk '{gsub(/MODEL1_XML_FILE/,"${model1}"); print}' | \\
         awk '{gsub(/MODEL2_XML_FILE/,"${model2}"); print}' | \\
         awk '{gsub(/MODEL3_XML_FILE/,"${model3}"); print}' | \\
@@ -289,93 +312,70 @@ process runCP {
     label "cellpro"
     label "ml"
 
+    publishDir "${params.out}/processed_images", mode: 'copy', pattern: "*.png"
+
     input:
-        tuple val(group), file(pipeline), path(output), path(projectdir)
+        tuple val(group), file(pipeline), path(output), path(project), \
+              file(metadata), file(model1), file(model2), file(model3), \
+              file(model4)
+
 
     output:
-        stdout emit: cp_output //tuple file("*.csv"), file("*.png"), emit: cp_output
+        tuple path("*NonOverlappingWorms.csv"), path("WormObjects.csv"), emit: cp_csv
+        path("*.png"), emit: cp_png
 
     """
-        # Run cellprofiler headless
-        cellprofiler -c -r -p ${pipeline} \
-        -g ${group} \
-        -o ${output}
-
+    # Run cellprofiler headless
+    cellprofiler -c -r -p ${pipeline} \
+    -g ${group} \
+    -o ./
     """
 }
+
+/*
+~ ~ ~ > * Convert csv files from dos to unix
+*/
+
+process dos2unix {
+    
+    executor "local"
+    container null
+
+    input:
+        path(dataDir)
+    output:
+       path "converted/*.csv"
+
+    """
+    mkdir converted
+    for I in *.csv; do
+        dos2unix -n \$I converted/\$I
+    done
+    """
+}
+
 
 /*
 ~ ~ ~ > * PROCESS CELLPROFILER OUTPUTS
 */
 
-process proc_CP_output_dauer {
+process proc_CP_output {
 
-    //publishDir "${params.out}/processed_data", mode: 'copy', pattern: "*.RData"
-  
-    label "md"
-    label "R"
-  
-    input:
-        tuple val(cp_output), path(out_dir), val(model_name1), val(model_name2), file(proc_CP_out_script)
+    publishDir "${params.out}/processed_data", mode: 'copy', pattern: "*.RData"
 
-    output:
-        //path "*.RData", emit: cp_out_dat
-
-    """
-        # remove exisitng directories if present and make fresh
-        if [ -d ${out_dir}/processed_data ]; then rm -Rf ${out_dir}/processed_data; fi
-        mkdir ${out_dir}/processed_data
-        if [ -d ${out_dir}/processed_images ]; then rm -Rf ${out_dir}/processed_images; fi
-        mkdir ${out_dir}/processed_images
-        # find .csv files, concatenate them, and write new file
-        find ${out_dir}/CP_output -type f -name '${model_name1}.csv' -print0 | xargs -0 awk 'FNR>1 || NR==1 {print}' > ${out_dir}/processed_data/${model_name1}.csv
-        
-        # find .csv files, concatenate them, and write new file
-        find ${out_dir}/CP_output -type f -name '${model_name2}.csv' -print0 | xargs -0 awk 'FNR>1 || NR==1 {print}' > ${out_dir}/processed_data/${model_name2}.csv
-        
-        # move all the output images to process_images directory END WITH /?
-        find ${out_dir}/CP_output -name '*.png' -exec mv {} ${out_dir}/processed_images \\;
-        # Process the CellProfiler output with proc_CP_output.R
-        Rscript --vanilla ${proc_CP_out_script} ${out_dir}
-
-    """
-}
-
-process proc_CP_output_toxin {
-
-    //publishDir "${params.out}/processed_data", mode: 'copy', pattern: "*.RData"
-    //publishDir "${params.out}/processed_data", mode: 'copy'
-   
     label "md"
     label "R"
  
     input:
-        tuple val(cp_output), path(out_dir), val(model_name1), val(model_name2),
-        val(model_name3), val(model_name4), file(proc_CP_out_script)
+        tuple file(worms_csv), val(analysis_dir), path(project_dir),
+              file(proc_CP_out_script)
 
     output:
-        //path "*.RData", emit: cp_out_dat
+        path "*.RData"
 
     """
-        # remove exisitng directories if present and make fresh
-        if [ -d ${out_dir}/processed_data ]; then rm -Rf ${out_dir}/processed_data; fi
-        mkdir ${out_dir}/processed_data
-        if [ -d ${out_dir}/processed_images ]; then rm -Rf ${out_dir}/processed_images; fi
-        mkdir ${out_dir}/processed_images
-        
-        # find .csv files, concatenate them, and write new file
-        find ${out_dir}/CP_output -type f -name '${model_name1}.csv' -print0 | xargs -0 awk 'FNR>1 || NR==1 {print}' > ${out_dir}/processed_data/${model_name1}.csv
-        find ${out_dir}/CP_output -type f -name '${model_name2}.csv' -print0 | xargs -0 awk 'FNR>1 || NR==1 {print}' > ${out_dir}/processed_data/${model_name2}.csv
-        find ${out_dir}/CP_output -type f -name '${model_name3}.csv' -print0 | xargs -0 awk 'FNR>1 || NR==1 {print}' > ${out_dir}/processed_data/${model_name3}.csv
-        find ${out_dir}/CP_output -type f -name '${model_name4}.csv' -print0 | xargs -0 awk 'FNR>1 || NR==1 {print}' > ${out_dir}/processed_data/${model_name4}.csv
-        find ${out_dir}/CP_output -type f -name 'WormObjects.csv' -print0 | xargs -0 awk 'FNR>1 || NR==1 {print}' > ${out_dir}/processed_data/WormObjects.csv
-        
-        # move all the output images to process_images directory
-        find ${out_dir}/CP_output -name '*.png' -exec mv {} ${out_dir}/processed_images \\;
-        
-        # Process the CellProfiler output with proc_CP_output.R
-        Rscript --vanilla ${proc_CP_out_script} ${out_dir}
-
+    # Process the CellProfiler output with proc_CP_output.R
+    Rscript --vanilla ${proc_CP_out_script} ${project_dir}/${analysis_dir}
     """
 }
 
