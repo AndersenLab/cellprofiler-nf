@@ -328,7 +328,7 @@ process runCP {
     # Run cellprofiler headless
     cellprofiler -c -r -p ${pipeline} \
     -g ${group} \
-    -o ./
+    -i ./ -o ./
     """
 }
 
