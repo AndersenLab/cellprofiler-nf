@@ -111,106 +111,108 @@ workflow {
         Channel.fromPath("${workflow.projectDir}")
             .combine(Channel.of("${params.pipeline}")) | prep_debug
     }
+
+    Channel.fromPath("${params.project}") | sanitize_names
     
     if("${params.pipeline}" == "dauer") {
-    // configure inputs for CellProfiler
-    config_cp = Channel.fromPath("${params.raw_pipe}")
-        .combine(Channel.of("${params.metadata}"))
-        .combine(Channel.of(worm_model1)) // edit here
-        .combine(Channel.of(worm_model2)) // edit here
-        .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_dauer.R"))
-        .combine(Channel.fromPath("${params.project}"))
-        .combine(Channel.of("${params.well_mask}"))
-        .combine(Channel.of("${params.groups}"))
-        .combine(Channel.of("${params.edited_pipe}"))
-        .combine(Channel.of("${params.out}")) | config_CP_input_dauer
+        // configure inputs for CellProfiler
+        config_cp = Channel.fromPath("${params.raw_pipe}")
+            .combine(Channel.of("${params.metadata}"))
+            .combine(Channel.of(worm_model1)) // edit here
+            .combine(Channel.of(worm_model2)) // edit here
+            .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_dauer.R"))
+            .combine(sanitize_names.out)
+            .combine(Channel.of("${params.well_mask}"))
+            .combine(Channel.of("${params.groups}"))
+            .combine(Channel.of("${params.edited_pipe}"))
+            .combine(Channel.of("${params.out}")) | config_CP_input_dauer
 
-    // Run CellProfiler
-    CP_in = config_CP_input_dauer.out.groups_file
-        .splitCsv(header:true, sep: "\t")
-        .map { row ->
-                [row.group, file("${row.pipeline}")]
-            }
-    CP_in.combine(Channel.fromPath("${params.out}"))
-        .combine(Channel.fromPath("${params.project}"))
-        .combine(config_CP_input_dauer.out.metadata_file)
-        .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model1}"))
-        .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model2}"))
-        .combine(Channel.of(null))
-        .combine(Channel.of(null)) | runCP
-    
-    // Compile csv files by model
-    split_csv =  { item -> [ item.baseName + ".csv", item ] }
-    runCP.out.cp_csv.flatten() | dos2unix
-    nonoverlapping = dos2unix.out
-        .collect()
-        .flatten()
-    
-    nonoverlapping_joined = nonoverlapping
-        .collectFile(split_csv, skip:1, keepHeader:true, storeDir:"${params.out}/processed_data")
-        .collate(3)
+        // Run CellProfiler
+        CP_in = config_CP_input_dauer.out.groups_file
+            .splitCsv(header:true, sep: "\t")
+            .map { row ->
+                    [row.group, file("${row.pipeline}")]
+                }
+        CP_in.combine(Channel.fromPath("${params.out}"))
+            .combine(Channel.fromPath("${params.project}"))
+            .combine(config_CP_input_dauer.out.metadata_file)
+            .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model1}"))
+            .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model2}"))
+            .combine(Channel.of(null))
+            .combine(Channel.of(null)) | runCP
+        
+        // Compile csv files by model
+        split_csv =  { item -> [ item.baseName + ".csv", item ] }
+        runCP.out.cp_csv.flatten() | dos2unix
+        nonoverlapping = dos2unix.out
+            .collect()
+            .flatten()
+        
+        nonoverlapping_joined = nonoverlapping
+            .collectFile(split_csv, skip:1, keepHeader:true, storeDir:"${params.out}/processed_data")
+            .collate(3)
 
-    csv_files = nonoverlapping_joined
-        .buffer(1)
-        .last()
-        .combine(Channel.of("${params.analysisDir}"))
-        .combine(Channel.fromPath("${params.outdir}"))
-        .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_dauer.R"))
+        csv_files = nonoverlapping_joined
+            .buffer(1)
+            .last()
+            .combine(Channel.of("${params.analysisDir}"))
+            .combine(Channel.fromPath("${params.outdir}"))
+            .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_dauer.R"))
 
-    // Preprocess CellProfiler output files
-    proc_CP_output(csv_files)
+        // Preprocess CellProfiler output files
+        proc_CP_output(csv_files)
     }
 
     if("${params.pipeline}" == "toxin") {
-    // configure inputs for CellProfiler
-    config_cp = Channel.fromPath("${params.raw_pipe}")
-        .combine(Channel.of("${params.metadata}"))
-        .combine(Channel.of(worm_model1)) // edit here
-        .combine(Channel.of(worm_model2)) // edit here
-        .combine(Channel.of(worm_model3)) // edit here
-        .combine(Channel.of(worm_model4)) // edit here
-        .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_toxin.R"))
-        .combine(Channel.fromPath("${params.project}"))
-        .combine(Channel.of("${params.well_mask}"))
-        .combine(Channel.of("${params.groups}"))
-        .combine(Channel.of("${params.edited_pipe}"))
-        .combine(Channel.of("${params.out}")) | config_CP_input_toxin
-        //.view()
+        // configure inputs for CellProfiler
+        config_cp = Channel.fromPath("${params.raw_pipe}")
+            .combine(Channel.of("${params.metadata}"))
+            .combine(Channel.of(worm_model1)) // edit here
+            .combine(Channel.of(worm_model2)) // edit here
+            .combine(Channel.of(worm_model3)) // edit here
+            .combine(Channel.of(worm_model4)) // edit here
+            .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_toxin.R"))
+            .combine(sanitize_names.out)
+            .combine(Channel.of("${params.well_mask}"))
+            .combine(Channel.of("${params.groups}"))
+            .combine(Channel.of("${params.edited_pipe}"))
+            .combine(Channel.of("${params.out}")) | config_CP_input_toxin
+            //.view()
 
-    // Run CellProfiler
-    CP_in = config_CP_input_toxin.out.groups_file
-        .splitCsv(header:true, sep: "\t")
-        .map { row ->
-                [row.group, file("${row.pipeline}")]
-            }
-    CP_in.combine(Channel.fromPath("${params.out}"))
-        .combine(Channel.fromPath("${params.project}"))
-        .combine(config_CP_input_toxin.out.metadata_file)
-        .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model1}"))
-        .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model2}"))
-        .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model3}"))
-        .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model4}")) | runCP
-    
-    // Compile csv files by model
-    split_csv =  { item -> [ item.baseName + ".csv", item ] }
-    runCP.out.cp_csv.flatten() | dos2unix
-    nonoverlapping = dos2unix.out
-        .collect()
-        .flatten()
-    
-    nonoverlapping_joined = nonoverlapping
-        .collectFile(split_csv, skip:1, keepHeader:true, storeDir:"${params.out}/processed_data")
-        .collate(5)
+        // Run CellProfiler
+        CP_in = config_CP_input_toxin.out.groups_file
+            .splitCsv(header:true, sep: "\t")
+            .map { row ->
+                    [row.group, file("${row.pipeline}")]
+                }
+        CP_in.combine(Channel.fromPath("${params.out}"))
+            .combine(Channel.fromPath("${params.project}"))
+            .combine(config_CP_input_toxin.out.metadata_file)
+            .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model1}"))
+            .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model2}"))
+            .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model3}"))
+            .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model4}")) | runCP
 
-    csv_files = nonoverlapping_joined
-        .buffer(1)
-        .last()
-        .combine(Channel.of("${params.analysisDir}"))
-        .combine(Channel.fromPath("${params.outdir}"))
-        .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_toxin.R"))
+        // Compile csv files by model
+        split_csv =  { item -> [ item.baseName + ".csv", item ] }
+        runCP.out.cp_csv.flatten() | dos2unix
+        nonoverlapping = dos2unix.out
+            .collect()
+            .flatten()
 
-    // Preprocess CellProfiler output files
-    proc_CP_output(csv_files)
+        nonoverlapping_joined = nonoverlapping
+            .collectFile(split_csv, skip:1, keepHeader:true, storeDir:"${params.out}/processed_data")
+            .collate(5)
+
+        csv_files = nonoverlapping_joined
+            .buffer(1)
+            .last()
+            .combine(Channel.of("${params.analysisDir}"))
+            .combine(Channel.fromPath("${params.outdir}"))
+            .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_toxin.R"))
+
+        // Preprocess CellProfiler output files
+        proc_CP_output(csv_files)
     }
 }
 
@@ -232,6 +234,24 @@ process prep_debug {
 
     """
     cp -r ${source_dir}/debug/*${pipeline}*/raw_images ./
+    """
+}
+
+process sanitize_names {
+    executor "local"
+    container null
+
+    publishDir "${params.out}/raw_images/", mode: "cp", pattern: "*.TIF"
+    publishDir "${params.out}/raw_images/", mode: "cp", pattern: "*.tif"
+
+    input:
+        path(source_dir)
+    output:
+        path(source_dir)
+
+    """
+    regex="^([a-z|A-Z|0-9|_|-|/]*/)?([0-9]+-[a-z|A-Z|0-9]+-p[0-9]+-m[0-9]+[X|x]_[A-Z][0-9]{2})(_w[0-9])?([A-Z|0-9|-]{36})(\.tif|\.TIF)$"
+    for I in ${source_dir)/raw_images/*; do if [[ $I =~ $regex ]]; then ln -s ${PWD}/${I} ${BASH_REMATCH[2]}${BASH_REMATCH[3]}${BASH_REMATCH[5]}; fi; done
     """
 }
 

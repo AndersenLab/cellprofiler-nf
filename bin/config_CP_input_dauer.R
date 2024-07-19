@@ -29,14 +29,12 @@ raw_imagesDir <- paste0(projDir, "/raw_images")
 # parse file names from directory - need wavelength in file name
 meta1 <- tibble::tibble(file = list.files(path = raw_imagesDir),
                         file_path = list.files(path = raw_imagesDir, full.names = T)) %>%
-  dplyr::filter(is.na(stringr::str_match(file, "(?:[0-9]+-[a-z|A-Z|0-9]+-p[0-9]+-m[0-9]+[x|X]_[A-Z][0-9]+_w[0-9])(_thumb)?(?:|[:word:]{36})\\.([a-z]{3}|[A-Z]{3})")[,2])) %>%
-  dplyr::mutate(copy = stringr::str_match(file, "([0-9]+-[a-z|A-Z|0-9]+-p[0-9]+-m[0-9]+[x|X]_[A-Z][0-9]+_w[0-9])(?:|[:word:]{36})")[,2]) %>%
-  dplyr::mutate(file = stringr::str_c(copy, ".TIF")) %>%
-  #dplyr::mutate(copy = file) %>%
+  dplyr::filter(stringr::str_match(file, "([0-9]+-[a-z|A-Z|0-9]+-p[0-9]+-m[0-9]+[X|x]_[A-Z][0-9]{2})(_w[0-9])(\.tif|\.TIF)$")) %>%
+  dplyr::mutate(copy = file) %>%
   tidyr::separate(col = copy, into = c("date","exp","plate","mag"), sep = "-") %>%
   tidyr::separate(col = mag, into = c("mag","well", "wave"), sep = "_") %>%
-  #tidyr::separate(col = wave, into = c("wave","TIF"), sep = "[.]") %>%
-  #dplyr::select(-TIF) %>%
+  tidyr::separate(col = wave, into = c("wave","TIF"), sep = "[.]") %>%
+  dplyr::select(-TIF) %>%
   dplyr::mutate(row = stringr::str_extract(well, pattern = "[A-Z]"),
                 col = stringr::str_extract(well, pattern = "[0-9][0-9]"),
                 Image_PathName_wellmask_98.png = stringr::str_replace(args[2], pattern = "([^/]+$)", replacement = ""),
