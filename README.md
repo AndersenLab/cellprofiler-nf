@@ -65,7 +65,7 @@ nextflow run -latest andersenlab/cellprofiler-nf --debug
 You should run this in a screen or tmux session.
 
 ```
-nextflow run -latest andersenlab/cellprofiler --pipeline dauer --project /vast/eande106/project/<user>/<project_dir>
+nextflow run -latest andersenlab/cellprofiler-nf --pipeline dauer --project /vast/eande106/project/<user>/<project_dir>
 ```
 
 # Parameters
