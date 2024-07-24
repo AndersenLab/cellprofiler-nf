@@ -371,7 +371,7 @@ process dos2unix {
        path "converted/*.csv"
 
     """
-    mkdir converted
+    mkdir -p converted
     for I in *.csv; do
         dos2unix -n \$I converted/\$I
     done
