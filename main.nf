@@ -121,7 +121,8 @@ workflow {
             .combine(Channel.of(worm_model1)) // edit here
             .combine(Channel.of(worm_model2)) // edit here
             .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_dauer.R"))
-            .combine(sanitize_names.out)
+            .combine(Channel.of("${params.project}"))
+            .combine(sanitize_names.out.buffer(size: 1).last())
             .combine(Channel.of("${params.well_mask}"))
             .combine(Channel.of("${params.groups}"))
             .combine(Channel.of("${params.edited_pipe}"))
@@ -172,7 +173,8 @@ workflow {
             .combine(Channel.of(worm_model3)) // edit here
             .combine(Channel.of(worm_model4)) // edit here
             .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_toxin.R"))
-            .combine(sanitize_names.out)
+            .combine(Channel.of("${params.project}"))
+            .combine(sanitize_names.out.buffer(size: 1).last())
             .combine(Channel.of("${params.well_mask}"))
             .combine(Channel.of("${params.groups}"))
             .combine(Channel.of("${params.edited_pipe}"))
@@ -238,20 +240,23 @@ process prep_debug {
 }
 
 process sanitize_names {
+    
     executor "local"
     container null
 
-    publishDir "${params.out}/raw_images/", mode: "cp", pattern: "*.TIF"
-    publishDir "${params.out}/raw_images/", mode: "cp", pattern: "*.tif"
+    publishDir "${params.project}/raw_images", mode: 'copyNoFollow', pattern: "*.TIF", overwrite: false
 
     input:
-        path(source_dir)
+        path source_dir
     output:
-        path(source_dir)
+        path "*.TIF"
 
     """
-    regex="^([a-z|A-Z|0-9|_|/|\.|-]*/)?([0-9]+-[a-z|A-Z|0-9]+-p[0-9]+-m[0-9]+[X|x]_[A-Z][0-9]{2})(_w[0-9])?([A-Z|0-9|-]{36})(\.tif|\.TIF)$"
-    for I in ${source_dir)/raw_images/*; do if [[ $I =~ $regex ]]; then ln -s ${PWD}/${I} ${BASH_REMATCH[2]}${BASH_REMATCH[3]}${BASH_REMATCH[5]}; fi; done
+    for I in ${source_dir}/raw_images/*; do
+        if [[ \${I} =~ ^([a-z|A-Z|0-9|_|/|\\.|-]*/)?([0-9]+-[a-z|A-Z|0-9]+-p[0-9]+-m[0-9]+[X|x]_[A-Z][0-9]{2})(_w[0-9])?([A-Z|0-9|-]{36})(\\.tif|\\.TIF)\$ ]]; then
+            ln -s \${PWD}/\${I} \${BASH_REMATCH[2]}\${BASH_REMATCH[3]}.TIF
+        fi
+    done
     """
 }
 
@@ -265,8 +270,8 @@ process config_CP_input_dauer {
 
     input:
         tuple file(raw_pipe), val(meta), val(model1), val(model2), \
-              file(config_script), path(project), val(mask), val(group), \
-              val(edited_pipe), val(out)
+              file(config_script), path(project), file(tif), val(mask), \
+              val(group), val(edited_pipe), val(out)
 
     output:
         path "*.cppipe", emit: cp_pipeline_file
@@ -275,16 +280,15 @@ process config_CP_input_dauer {
         
 
     """
-        # Configure the raw pipeline for CellProfiler
-        awk '{gsub(/METADATA_DIR/,"."); print}' ${raw_pipe} | \\
-        awk '{gsub(/METADATA_CSV_FILE/,"${meta}"); print}' | \\
-        awk '{gsub(/WORM_MODEL_DIR/,"."); print}' | \\
-        awk '{gsub(/MODEL1_XML_FILE/,"${model1}"); print}' | \\
-        awk '{gsub(/MODEL2_XML_FILE/,"${model2}"); print}' > pipeline.cppipe
+    # Configure the raw pipeline for CellProfiler
+    awk '{gsub(/METADATA_DIR/,"."); print}' ${raw_pipe} | \\
+    awk '{gsub(/METADATA_CSV_FILE/,"${meta}"); print}' | \\
+    awk '{gsub(/WORM_MODEL_DIR/,"."); print}' | \\
+    awk '{gsub(/MODEL1_XML_FILE/,"${model1}"); print}' | \\
+    awk '{gsub(/MODEL2_XML_FILE/,"${model2}"); print}' > pipeline.cppipe
 
-        # Configure metadata and groups for CellProfiller with config_CP_input.R
-        Rscript --vanilla ${config_script} ${project} ${mask} ${group} ${edited_pipe} ${out}
-
+    # Configure metadata and groups for CellProfiller with config_CP_input.R
+    Rscript --vanilla ${config_script} ${project} ${mask} ${group} ${edited_pipe} ${out}
     """
 }
 
@@ -298,7 +302,7 @@ process config_CP_input_toxin {
 
     input:
         tuple file(raw_pipe), val(meta), val(model1), val(model2), val(model3), \
-              val(model4), file(config_script), path(project), val(mask), \
+              val(model4), file(config_script), path(project), file(tif), val(mask), \
               val(group), val(edited_pipe), val(out)
 
     output:
