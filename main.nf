@@ -334,7 +334,7 @@ process config_CP_input_toxin {
 process runCP {
 
     label "cellpro"
-    label "xl"
+    label "md"
 
     publishDir "${params.out}/processed_images", mode: 'copy', pattern: "*.png"
 
