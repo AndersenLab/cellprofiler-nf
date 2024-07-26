@@ -187,13 +187,15 @@ workflow {
             .map { row ->
                     [row.group, file("${row.pipeline}")]
                 }
-        CP_in.combine(Channel.fromPath("${params.out}"))
+            .combine(Channel.fromPath("${params.out}"))
             .combine(Channel.fromPath("${params.project}"))
             .combine(config_CP_input_toxin.out.metadata_file)
             .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model1}"))
             .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model2}"))
             .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model3}"))
-            .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model4}")) | runCP
+            .combine(Channel.fromPath("${params.worm_model_dir}/${worm_model4}"))
+            
+        runCP(CP_in)
 
         // Compile csv files by model
         split_csv =  { item -> [ item.baseName + ".csv", item ] }
@@ -334,7 +336,7 @@ process config_CP_input_toxin {
 process runCP {
 
     label "cellpro"
-    label "md"
+    label "xs"
 
     publishDir "${params.out}/processed_images", mode: 'copy', pattern: "*.png"
 
@@ -349,6 +351,7 @@ process runCP {
         path("*.png"), emit: cp_png
 
     """
+    export _JAVA_OPTIONS="-XX:+UseSerialGC"
     # Run cellprofiler headless
     cellprofiler -c -r -p ${pipeline} \
     -g ${group} \
