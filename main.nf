@@ -336,7 +336,7 @@ process config_CP_input_toxin {
 process runCP {
 
     label "cellpro"
-    label "xs"
+    label "sm"
 
     publishDir "${params.out}/processed_images", mode: 'copy', pattern: "*.png"
 
@@ -351,7 +351,12 @@ process runCP {
         path("*.png"), emit: cp_png
 
     """
-    export _JAVA_OPTIONS="-XX:+UseSerialGC"
+    JAVA_OPTIONS=$( echo "${task.memory} | awk '{ MEM=tolower($1); \
+                                                  if ( MEM ~ /[0-9]*g\$/ ) SUFFIX="g"; else SUFFIX="m"; \
+                                                  gsub(SUFFIX,"",MEM); \
+                                                  printf "-XX:+UseSerialGC -Xms%i%s -Xmx%i%s -XX:MaxNewSize=%i%s", \
+                                                  max(1, MEM/4), SUFFIX, MEM, SUFFIX, MEM, SUFFIX;}' )
+    export _JAVA_OPTIONS="\$JAVA_OPTIONS"
     # Run cellprofiler headless
     cellprofiler -c -r -p ${pipeline} \
     -g ${group} \
