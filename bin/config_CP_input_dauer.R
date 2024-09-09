@@ -29,7 +29,7 @@ raw_imagesDir <- paste0(projDir, "/raw_images")
 # parse file names from directory - need wavelength in file name
 meta1 <- tibble::tibble(file = list.files(path = raw_imagesDir),
                         file_path = list.files(path = raw_imagesDir, full.names = T)) %>%
-  dplyr::filter(grepl("([0-9]+-[a-z|A-Z|0-9]+-p[0-9]+-m[0-9]+[X|x]_[A-Z][0-9]{2})(_w[0-9])(\\.TIF)$", file)) %>%
+  dplyr::filter(grepl("([0-9]+-[a-z|A-Z|0-9|_]+-p[0-9]+-m[0-9]+[X|x]_[A-Z][0-9]{2})(_w[0-9])(\\.TIF)$", file)) %>%
   dplyr::mutate(copy = file) %>%
   tidyr::separate(col = copy, into = c("date","exp","plate","mag"), sep = "-") %>%
   tidyr::separate(col = mag, into = c("mag","well", "wave"), sep = "_") %>%

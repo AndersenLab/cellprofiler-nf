@@ -116,7 +116,7 @@ workflow {
     }
 
     Channel.fromPath("${params.project}")
-        .combine(raw_name) | sanitize_names
+        .combine(raw_name).view() | sanitize_names
     
     if("${params.pipeline}" == "dauer") {
         // configure inputs for CellProfiler
@@ -259,8 +259,10 @@ process sanitize_names {
 
     """
     for I in ${source_dir}/raw_images/*; do
-        if [[ \${I} =~ ^([a-z|A-Z|0-9|_|/|\\.|-]*/)?([0-9]+-[a-z|A-Z|0-9|-]+-p[0-9]+-m[0-9]+[X|x]_[A-Z][0-9]{2})(_w[0-9])?([A-Z|0-9|-]{36})?(\\.tif|\\.TIF)\$ ]]; then
-            ln -s \${PWD}/\${I} \${BASH_REMATCH[2]}\${BASH_REMATCH[3]}.TIF
+        if [[ \${I} =~ ^([a-z|A-Z|0-9|_|/|\\.|-]*/)?([0-9]+-[a-z|A-Z|0-9]+-p[0-9]+-m[0-9]+[X|x]_[A-Z][0-9]{2})(_w[0-9])?([A-Z|0-9|-]{36})?(\\.tif|\\.TIF)\$ ]]; then
+            if [ ! -e \${BASH_REMATCH[2]}\${BASH_REMATCH[3]}.TIF ]; then
+                ln -s \${PWD}/\${I} \${BASH_REMATCH[2]}\${BASH_REMATCH[3]}.TIF
+            fi
         fi
     done
     echo \$(ls ./)
