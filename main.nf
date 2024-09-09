@@ -110,9 +110,13 @@ workflow {
     if (params.debug) {
         Channel.fromPath("${workflow.projectDir}")
             .combine(Channel.of("${params.pipeline}")) | prep_debug
+        raw_name = prep_debug.out.buffer( size: 1 ).last()
+    } else {
+        raw_name = Channel.fromPath("${workflow.projectDir}/raw_images/*").buffer( size: 1 ).last()
     }
 
-    Channel.fromPath("${params.project}") | sanitize_names
+    Channel.fromPath("${params.project}")
+        .combine(raw_name) | sanitize_names
     
     if("${params.pipeline}" == "dauer") {
         // configure inputs for CellProfiler
@@ -121,7 +125,7 @@ workflow {
             .combine(Channel.of(worm_model1)) // edit here
             .combine(Channel.of(worm_model2)) // edit here
             .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_dauer.R"))
-            .combine(Channel.of("${params.project}"))
+            .combine(Channel.fromPath("${params.project}"))
             .combine(sanitize_names.out.buffer(size: 1).last())
             .combine(Channel.of("${params.well_mask}"))
             .combine(Channel.of("${params.groups}"))
@@ -246,10 +250,10 @@ process sanitize_names {
     executor "local"
     container null
 
-    publishDir "${params.project}/raw_images", mode: 'copyNoFollow', pattern: "*.TIF", overwrite: false
+    publishDir "${params.out}/../raw_images", mode: 'copyNoFollow', pattern: "*.TIF", overwrite: false
 
     input:
-        path source_dir
+        tuple path(source_dir), file("dummyfile")
     output:
         path "*.TIF"
 
@@ -259,6 +263,7 @@ process sanitize_names {
             ln -s \${PWD}/\${I} \${BASH_REMATCH[2]}\${BASH_REMATCH[3]}.TIF
         fi
     done
+    echo \$(ls ./)
     """
 }
 
@@ -351,11 +356,15 @@ process runCP {
         path("*.png"), emit: cp_png
 
     """
-    JAVA_OPTIONS=$( echo "${task.memory} | awk '{ MEM=tolower($1); \
-                                                  if ( MEM ~ /[0-9]*g\$/ ) SUFFIX="g"; else SUFFIX="m"; \
-                                                  gsub(SUFFIX,"",MEM); \
-                                                  printf "-XX:+UseSerialGC -Xms%i%s -Xmx%i%s -XX:MaxNewSize=%i%s", \
-                                                  max(1, MEM/4), SUFFIX, MEM, SUFFIX, MEM, SUFFIX;}' )
+    JAVA_OPTIONS=\$( echo "${task.memory}\" | awk '{ MEM=tolower(\$0); \
+                                                    if ( MEM ~ /[0-9]* g[b]?\$/ ){ \
+                                                      SUFFIX="g";  gsub(" gb","",MEM); gsub(" g","",MEM); \
+                                                    } else { \
+                                                      SUFFIX="m"; gsub(" mb","",MEM); gsub(" m","",MEM); \
+                                                    }; \
+                                                    if ( MEM/4 < 1 ) MINMEM=1; else MINMEM=MEM/4;
+                                                    printf "-XX:+UseSerialGC -Xms%i%s -Xmx%i%s -XX:MaxNewSize=%i%s", \
+                                                    MINMEM, SUFFIX, MEM, SUFFIX, MEM, SUFFIX;}' )
     export _JAVA_OPTIONS="\$JAVA_OPTIONS"
     # Run cellprofiler headless
     cellprofiler -c -r -p ${pipeline} \
