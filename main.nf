@@ -110,13 +110,13 @@ workflow {
     if (params.debug) {
         Channel.fromPath("${workflow.projectDir}")
             .combine(Channel.of("${params.pipeline}")) | prep_debug
-        raw_name = prep_debug.out.buffer( size: 1 ).last()
+        raw_name = prep_debug.out.flatten().last()
     } else {
-        raw_name = Channel.fromPath("${workflow.projectDir}/raw_images/*").buffer( size: 1 ).last()
+        raw_name = Channel.fromPath("${workflow.projectDir}/raw_images/*").flatten().last()
     }
 
     Channel.fromPath("${params.project}")
-        .combine(raw_name).view() | sanitize_names
+        .combine(raw_name) | sanitize_names
     
     if("${params.pipeline}" == "dauer") {
         // configure inputs for CellProfiler
@@ -126,7 +126,7 @@ workflow {
             .combine(Channel.of(worm_model2)) // edit here
             .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_dauer.R"))
             .combine(Channel.fromPath("${params.project}"))
-            .combine(sanitize_names.out.buffer(size: 1).last())
+            .combine(sanitize_names.out.toSortedList().flatten().last())
             .combine(Channel.of("${params.well_mask}"))
             .combine(Channel.of("${params.groups}"))
             .combine(Channel.of("${params.edited_pipe}"))
@@ -178,12 +178,11 @@ workflow {
             .combine(Channel.of(worm_model4)) // edit here
             .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_toxin.R"))
             .combine(Channel.of("${params.project}"))
-            .combine(sanitize_names.out.buffer(size: 1).last())
+            .combine(sanitize_names.out.toSortedList().flatten().last())
             .combine(Channel.of("${params.well_mask}"))
             .combine(Channel.of("${params.groups}"))
             .combine(Channel.of("${params.edited_pipe}"))
             .combine(Channel.of("${params.out}")) | config_CP_input_toxin
-            //.view()
 
         // Run CellProfiler
         CP_in = config_CP_input_toxin.out.groups_file
@@ -250,7 +249,7 @@ process sanitize_names {
     executor "local"
     container null
 
-    publishDir "${params.out}/../raw_images", mode: 'copyNoFollow', pattern: "*.TIF", overwrite: false
+    //publishDir "${params.out}/../raw_images", mode: 'copyNoFollow', pattern: "*.TIF", overwrite: false
 
     input:
         tuple path(source_dir), file("dummyfile")
@@ -260,12 +259,9 @@ process sanitize_names {
     """
     for I in ${source_dir}/raw_images/*; do
         if [[ \${I} =~ ^([a-z|A-Z|0-9|_|/|\\.|-]*/)?([0-9]+-[a-z|A-Z|0-9]+-p[0-9]+-m[0-9]+[X|x]_[A-Z][0-9]{2})(_w[0-9])?([A-Z|0-9|-]{36})?(\\.tif|\\.TIF)\$ ]]; then
-            if [ ! -e \${BASH_REMATCH[2]}\${BASH_REMATCH[3]}.TIF ]; then
-                ln -s \${PWD}/\${I} \${BASH_REMATCH[2]}\${BASH_REMATCH[3]}.TIF
-            fi
+            ln -s \${PWD}/\${I} \${BASH_REMATCH[2]}\${BASH_REMATCH[3]}.TIF
         fi
     done
-    echo \$(ls ./)
     """
 }
 
@@ -364,14 +360,16 @@ process runCP {
                                                     } else { \
                                                       SUFFIX="m"; gsub(" mb","",MEM); gsub(" m","",MEM); \
                                                     }; \
-                                                    if ( MEM/4 < 1 ) MINMEM=1; else MINMEM=MEM/4;
-                                                    printf "-XX:+UseSerialGC -Xms%i%s -Xmx%i%s -XX:MaxNewSize=%i%s", \
+                                                    if ( MEM/2 < 1 ) MINMEM=1; else MINMEM=MEM/2;
+                                                    printf "-XX:ParallelGCThreads=1 -Xms%i%s -Xmx%i%s -Djava.io.tmpdir=${params.tmpDir}", \
                                                     MINMEM, SUFFIX, MEM, SUFFIX, MEM, SUFFIX;}' )
     export _JAVA_OPTIONS="\$JAVA_OPTIONS"
+    echo "\$_JAVA_OPTIONS"
     # Run cellprofiler headless
     cellprofiler -c -r -p ${pipeline} \
     -g ${group} \
-    -i ./ -o ./
+    -i ./ -o ./ \
+    -t ${params.tmpDir}
     """
 }
 
