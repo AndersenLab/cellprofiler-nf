@@ -249,7 +249,7 @@ process sanitize_names {
     executor "local"
     container null
 
-    //publishDir "${params.out}/../raw_images", mode: 'copyNoFollow', pattern: "*.TIF", overwrite: false
+    publishDir "${params.out}/../renamed_images", mode: 'copyNoFollow', pattern: "*.TIF", overwrite: false
 
     input:
         tuple path(source_dir), file("dummyfile")

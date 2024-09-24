@@ -26,7 +26,7 @@ args <- commandArgs(trailingOnly = TRUE)
 projDir <- args[1]
 projName <- stringr::str_extract(projDir, pattern = "([^/]+$)")
 
-raw_imagesDir <- paste0(projDir, "/raw_images")
+raw_imagesDir <- paste0(projDir, "/renamed_images")
 
 # parse file names from directory - need wavelength in file name
 meta1 <- tibble::tibble(file = list.files(path = raw_imagesDir),
