@@ -354,15 +354,18 @@ process runCP {
         path("*.png"), emit: cp_png
 
     """
+    export MPLCONFIGDIR=${params.tmpDir}
+    export TMPDIR=${params.tmpDir}
     JAVA_OPTIONS=\$( echo "${task.memory}\" | awk '{ MEM=tolower(\$0); \
                                                     if ( MEM ~ /[0-9]* g[b]?\$/ ){ \
                                                       SUFFIX="g";  gsub(" gb","",MEM); gsub(" g","",MEM); \
                                                     } else { \
                                                       SUFFIX="m"; gsub(" mb","",MEM); gsub(" m","",MEM); \
                                                     }; \
-                                                    if ( MEM/2 < 1 ) MINMEM=1; else MINMEM=MEM/2;
+                                                    if ( (MEM-2)/2 < 1 ) MINMEM=1; else MINMEM=(MEM-2)/2;
+                                                    if ( (MEM-2) < 1 ) MAXMEM=1; else MAXMEM=(MEM-2);
                                                     printf "-XX:ParallelGCThreads=1 -Xms%i%s -Xmx%i%s -Djava.io.tmpdir=${params.tmpDir}", \
-                                                    MINMEM, SUFFIX, MEM, SUFFIX, MEM, SUFFIX;}' )
+                                                    MINMEM, SUFFIX, MAXMEM, SUFFIX, MAXMEM, SUFFIX;}' )
     export _JAVA_OPTIONS="\$JAVA_OPTIONS"
     echo "\$_JAVA_OPTIONS"
     # Run cellprofiler headless
