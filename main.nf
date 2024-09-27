@@ -158,10 +158,9 @@ workflow {
             .collate(3)
 
         csv_files = nonoverlapping_joined
-            .buffer(1)
+            .flatten()
             .last()
-            .combine(Channel.of("${params.analysisDir}"))
-            .combine(Channel.fromPath("${params.outdir}"))
+            .combine(Channel.fromPath("${params.out}"))
             .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_dauer.R"))
 
         // Preprocess CellProfiler output files
@@ -212,10 +211,9 @@ workflow {
             .collate(5)
 
         csv_files = nonoverlapping_joined
-            .buffer(1)
+            .flatten()
             .last()
-            .combine(Channel.of("${params.analysisDir}"))
-            .combine(Channel.fromPath("${params.outdir}"))
+            .combine(Channel.fromPath("${params.out}"))
             .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_toxin.R"))
 
         // Preprocess CellProfiler output files
@@ -411,15 +409,14 @@ process proc_CP_output {
     label "R"
  
     input:
-        tuple file(worms_csv), val(analysis_dir), path(project_dir),
-              file(proc_CP_out_script)
+        tuple file(worms_csv), path(analysis_dir), file(proc_CP_out_script)
 
     output:
         path "*.RData"
 
     """
     # Process the CellProfiler output with proc_CP_output.R
-    Rscript --vanilla ${proc_CP_out_script} ${project_dir}/${analysis_dir}
+    Rscript --vanilla ${proc_CP_out_script} ${analysis_dir}
     """
 }
 
