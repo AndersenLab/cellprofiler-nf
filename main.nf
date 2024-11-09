@@ -418,7 +418,7 @@ process proc_CP_output {
 
     """
     # Process the CellProfiler output with proc_CP_output.R
-    Rscript --vanilla ${proc_CP_out_script} ${project/dir}/${analysis_dir}
+    Rscript --vanilla ${proc_CP_out_script} ${project_dir}/${analysis_dir}
     """
 }
 
