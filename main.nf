@@ -339,7 +339,11 @@ process config_CP_input_toxin {
 process runCP {
 
     label "cellpro"
-    label "sm"
+    label "sm_rerun"
+
+    time { 120.minute * task.attempt }
+    cpus = { 2 * task.attempt }
+    memory = { 4.GB * task.attempt }
 
     publishDir "${params.out}/processed_images", mode: 'copy', pattern: "*.png"
 
@@ -353,19 +357,14 @@ process runCP {
         tuple path("*NonOverlappingWorms.csv"), path("WormObjects.csv"), emit: cp_csv
         path("*.png"), emit: cp_png
 
+    def avail_mem = (task.memory.giga - 1).intValue()
     """
     export MPLCONFIGDIR=${params.tmpDir}
     export TMPDIR=${params.tmpDir}
-    JAVA_OPTIONS=\$( echo "${task.memory}\" | awk '{ MEM=tolower(\$0); \
-                                                    if ( MEM ~ /[0-9]* g[b]?\$/ ){ \
-                                                      SUFFIX="g";  gsub(" gb","",MEM); gsub(" g","",MEM); \
-                                                    } else { \
-                                                      SUFFIX="m"; gsub(" mb","",MEM); gsub(" m","",MEM); \
-                                                    }; \
-                                                    if ( (MEM-2)/2 < 1 ) MINMEM=1; else MINMEM=(MEM-2)/2;
-                                                    if ( (MEM-2) < 1 ) MAXMEM=1; else MAXMEM=(MEM-2);
-                                                    printf "-XX:ParallelGCThreads=1 -Xms%i%s -Xmx%i%s -Djava.io.tmpdir=${params.tmpDir}", \
-                                                    MINMEM, SUFFIX, MAXMEM, SUFFIX, MAXMEM, SUFFIX;}' )
+    JAVA_OPTIONS=\$( echo "${task.memory}\" | awk '{if ( (${avail_mem}-1)/2 < 1 ) MINMEM=1; else MINMEM=(${avail_mem}-1)/2;
+                                                    if ( (${avail_mem}-1) < 1 ) MAXMEM=1; else MAXMEM=(${avail_mem}-1);
+                                                    printf "-XX:ParallelGCThreads=${task.cpus} -Xms%ig -Xmx%ig -Djava.io.tmpdir=${params.tmpDir}", \
+                                                    MINMEM, MAXMEM;}' )
     export _JAVA_OPTIONS="\$JAVA_OPTIONS"
     echo "\$_JAVA_OPTIONS"
     # Run cellprofiler headless
