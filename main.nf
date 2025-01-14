@@ -357,6 +357,7 @@ process runCP {
         tuple path("*NonOverlappingWorms.csv"), path("WormObjects.csv"), emit: cp_csv
         path("*.png"), emit: cp_png
 
+    script:
     def avail_mem = (task.memory.giga - 1).intValue()
     """
     export MPLCONFIGDIR=${params.tmpDir}
