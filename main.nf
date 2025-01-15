@@ -114,9 +114,6 @@ workflow {
     } else {
         raw_name = Channel.fromPath("${workflow.projectDir}/raw_images/*").flatten().last()
     }
-
-    Channel.fromPath("${params.project}")
-        .combine(raw_name) | sanitize_names
     
     if("${params.pipeline}" == "dauer") {
         // configure inputs for CellProfiler
@@ -126,7 +123,7 @@ workflow {
             .combine(Channel.of(worm_model2)) // edit here
             .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_dauer.R"))
             .combine(Channel.fromPath("${params.project}"))
-            .combine(sanitize_names.out.toSortedList().flatten().last())
+            .combine(raw_name)
             .combine(Channel.of("${params.well_mask}"))
             .combine(Channel.of("${params.groups}"))
             .combine(Channel.of("${params.edited_pipe}"))
@@ -178,7 +175,7 @@ workflow {
             .combine(Channel.of(worm_model4)) // edit here
             .combine(Channel.fromPath("${params.bin_dir}/config_CP_input_toxin.R"))
             .combine(Channel.of("${params.project}"))
-            .combine(sanitize_names.out.toSortedList().flatten().last())
+            .combine(raw_name)
             .combine(Channel.of("${params.well_mask}"))
             .combine(Channel.of("${params.groups}"))
             .combine(Channel.of("${params.edited_pipe}"))
@@ -244,34 +241,13 @@ process prep_debug {
     """
 }
 
-process sanitize_names {
-    
-    executor "local"
-    container null
-
-    publishDir "${params.out}/../renamed_images", mode: 'copyNoFollow', pattern: "*.TIF", overwrite: false
-
-    input:
-        tuple path(source_dir), file("dummyfile")
-    output:
-        path "*.TIF"
-
-    """
-    for I in ${source_dir}/raw_images/*; do
-        if [[ \${I} =~ ^([a-z|A-Z|0-9|_|/|\\.|-]*/)?([0-9]+-[a-z|A-Z|0-9]+-p[0-9]+-m[0-9]+[X|x]_[A-Z][0-9]{2})(_w[0-9])?([A-Z|0-9|-]{36})?(\\.tif|\\.TIF)\$ ]]; then
-            ln -s \${PWD}/\${I} \${BASH_REMATCH[2]}\${BASH_REMATCH[3]}.TIF
-        fi
-    done
-    """
-}
-
 process config_CP_input_dauer {
     publishDir "${params.out}/pipeline", mode: 'copy', pattern: "*.cppipe"
     publishDir "${params.out}/metadata", mode: 'copy', pattern: "metadata.csv"
     publishDir "${params.out}/groups", mode: 'copy', pattern: "groups.tsv"
 
-    label "xs"
-    label "R"
+    executor "local"
+    container null
 
     input:
         tuple file(raw_pipe), val(meta), val(model1), val(model2), \
@@ -282,7 +258,6 @@ process config_CP_input_dauer {
         path "*.cppipe", emit: cp_pipeline_file
         path "metadata.csv", emit: metadata_file
         path "groups.tsv", emit: groups_file
-        
 
     """
     # Configure the raw pipeline for CellProfiler
@@ -293,7 +268,63 @@ process config_CP_input_dauer {
     awk '{gsub(/MODEL2_XML_FILE/,"${model2}"); print}' > pipeline.cppipe
 
     # Configure metadata and groups for CellProfiller with config_CP_input.R
-    Rscript --vanilla ${config_script} ${project} ${mask} ${group} ${edited_pipe} ${out}
+    FNAMES=(\$(ls ${project}/raw_images/*))
+    MASK_FILE=\$(basename ${mask})
+    MASK_PATH=\$(dirname ${mask})
+    SAMPLE_GROUPS=(\$(echo ${group} | sed "s/,/ /g"))
+    WAVES=""
+    for FNAME in \${FNAMES[*]}; do
+        NAME=\$(basename \${FNAME})
+        if [[ \${NAME} =~ ^([0-9]+)-([a-z|A-Z|0-9|_]+)-(p[0-9]+)-(m[0-9]+[X|x])_([A-Z][0-9]{2})_(w[0-9])(\\.TIF)\$ ]]; then
+            WAVES="\${WAVES}\\n\${BASH_REMATCH[6]}"
+        fi
+    done
+    WAVES=(\$(echo -e \${WAVES} | sort -k1,1 | uniq))
+    WAVE_N=\${#WAVES[*]}
+    IMAGE_SUFFICES=(RawBF RawRFP)
+
+    HEADER="Metadata_Experiment,Metadata_Date,Metadata_Plate,Metadata_Well,Metadata_Group,Metadata_Magnification"
+    for I in \$(seq 0 1 \$(expr \${WAVE_N} - 1)); do
+        HEADER="\${HEADER},Image_FileName_\${IMAGE_SUFFICES[\${I}]},Image_PathName_\${IMAGE_SUFFICES[\${I}]}"
+    done
+    echo "\${HEADER},Image_FileName_wellmask_98.png,Image_PathName_wellmask_98.png" > metadata.csv
+    echo -e "group\\tpipeline\\toutput" > groups.tsv
+
+    declare -A SAMPLES
+    declare -A SAMPLE_COUNT
+    PREV_GROUP=""
+    GROUP_N=0
+    for FNAME in \${FNAMES[*]}; do
+        NAME=\$(basename \${FNAME})
+        DIR=\$(dirname \${FNAME})
+        if [[ \${NAME} =~ ^([0-9]+)-([a-z|A-Z|0-9|_]+)-(p[0-9]+)-(m[0-9]+[X|x])_([A-Z][0-9]{2})_(w[0-9])(_[A-Z|0-9|-]{36})?\\.(tif|TIF)\$ ]]; then
+            DATE=\${BASH_REMATCH[1]}
+            EXP=\${BASH_REMATCH[2]}
+            PLATE=\${BASH_REMATCH[3]}
+            MAG=\${BASH_REMATCH[4]}
+            WELL=\${BASH_REMATCH[5]}
+            WAVE=\${BASH_REMATCH[6]}
+            declare -A SAMPLE_DATA=(["well"]=\${WELL} ["plate"]=\${PLATE} ["date"]=\${DATE} ["exp"]=\${EXP} ["mag"]=\${MAG} ["wave"]=\${WAVE})
+            GROUP=""
+            for G in \${SAMPLE_GROUPS[*]}; do
+                if [[ \${GROUP} == "" ]]; then GROUP="\${SAMPLE_DATA[\${G}]}";
+                else GROUP="\${GROUP}_\${SAMPLE_DATA[\${G}]}";
+                fi
+            done
+            if [[ \${GROUP} != \${PREV_GROUP} ]]; then
+                GROUP_N=1
+                LINE="\${EXP},\${DATE},\${PLATE},\${WELL},\${GROUP},\${MAG},\${NAME},\${DIR}"
+            else
+                GROUP_N=\$(expr \${GROUP_N} + 1)
+                LINE="\${LINE},\${NAME},\${DIR}"
+            fi
+            if [[ \${GROUP_N} == \${WAVE_N} ]]; then
+                echo "\${LINE},\${MASK_FILE},\${MASK_PATH}" >> metadata.csv
+                echo -e "Metadata_Group=\${GROUP}\\t${edited_pipe}\\t${out}/CP_output/\${GROUP}" >> groups.tsv
+            fi
+            PREV_GROUP="\${GROUP}"
+        fi
+    done
     """
 }
 
@@ -302,8 +333,8 @@ process config_CP_input_toxin {
     publishDir "${params.out}/metadata", mode: 'copy', pattern: "metadata.csv"
     publishDir "${params.out}/groups", mode: 'copy', pattern: "groups.tsv"
 
-    label "xs"
-    label "R"
+    executor "local"
+    container null
 
     input:
         tuple file(raw_pipe), val(meta), val(model1), val(model2), val(model3), \
@@ -314,21 +345,47 @@ process config_CP_input_toxin {
         path "*.cppipe", emit: cp_pipeline_file
         path "metadata.csv", emit: metadata_file
         path "groups.tsv", emit: groups_file
-        
 
     """
-        # Configure the raw pipeline for CellProfiler
-        awk '{gsub(/METADATA_DIR/,"."); print}' ${raw_pipe} | \\
-        awk '{gsub(/METADATA_CSV_FILE/,"${meta}"); print}' | \\
-        awk '{gsub(/WORM_MODEL_DIR/,"."); print}' | \\
-        awk '{gsub(/MODEL1_XML_FILE/,"${model1}"); print}' | \\
-        awk '{gsub(/MODEL2_XML_FILE/,"${model2}"); print}' | \\
-        awk '{gsub(/MODEL3_XML_FILE/,"${model3}"); print}' | \\
-        awk '{gsub(/MODEL4_XML_FILE/,"${model4}"); print}' > pipeline.cppipe
+    # Configure the raw pipeline for CellProfiler
+    awk '{gsub(/METADATA_DIR/,"."); print}' ${raw_pipe} | \\
+    awk '{gsub(/METADATA_CSV_FILE/,"${meta}"); print}' | \\
+    awk '{gsub(/WORM_MODEL_DIR/,"."); print}' | \\
+    awk '{gsub(/MODEL1_XML_FILE/,"${model1}"); print}' | \\
+    awk '{gsub(/MODEL2_XML_FILE/,"${model2}"); print}' | \\
+    awk '{gsub(/MODEL3_XML_FILE/,"${model3}"); print}' | \\
+    awk '{gsub(/MODEL4_XML_FILE/,"${model4}"); print}' > pipeline.cppipe
 
-        # Configure metadata and groups for CellProfiller with config_CP_input.R
-        Rscript --vanilla ${config_script} ${project} ${mask} ${group} ${edited_pipe} ${out}
+    # Configure metadata and groups for CellProfiller with config_CP_input.R
+    FNAMES=(\$(ls ${project}/raw_images/*))
+    MASK_FILE=\$(basename ${mask})
+    MASK_PATH=\$(dirname ${mask})
+    SAMPLE_GROUPS=(\$(echo ${group} | sed "s/,/ /g"))
 
+    HEADER="Metadata_Experiment,Metadata_Date,Metadata_Plate,Metadata_Well,Metadata_Group,Metadata_Magnification"
+    echo "\${HEADER},Image_FileName_RawBF,Image_PathName_RawBF,Image_FileName_wellmask_98.png,Image_PathName_wellmask_98.png" > metadata.csv
+    echo -e "group\\tpipeline\\toutput" > groups.tsv
+
+    for FNAME in \${FNAMES[*]}; do
+        NAME=\$(basename \${FNAME})
+        DIR=\$(dirname \${FNAME})
+        if [[ \${NAME} =~ ^([0-9]+)-([a-z|A-Z|0-9|_]+)-(p[0-9]+)-(m[0-9]+[X|x])_([A-Z][0-9]{2})(_[A-Z|0-9|-]{36})?\\.(tif|TIF)\$ ]]; then
+            DATE=\${BASH_REMATCH[1]}
+            EXP=\${BASH_REMATCH[2]}
+            PLATE=\${BASH_REMATCH[3]}
+            MAG=\${BASH_REMATCH[4]}
+            WELL=\${BASH_REMATCH[5]}
+            declare -A SAMPLE_DATA=( ["well"]=\${WELL} ["plate"]=\${PLATE} ["date"]=\${DATE} ["exp"]=\${EXP} ["mag"]=\${MAG})
+            GROUP=""
+            for G in \${SAMPLE_GROUPS[*]}; do
+                if [[ \${GROUP} == "" ]]; then GROUP=\${SAMPLE_DATA[\${G}]};
+                else GROUP="\${GROUP}_\${SAMPLE_DATA[\${G}]}";
+                fi
+            done
+            echo "\${EXP},\${DATE},\${PLATE},\${WELL},\${GROUP},\${MAG},\${NAME},\${DIR},\${MASK_FILE},\${MASK_PATH}" >> metadata.csv
+            echo -e "Metadata_Group=\${GROUP}\\t${edited_pipe}\\t${out}/CP_output/\${GROUP}" >> groups.tsv
+        fi
+    done
     """
 }
 
