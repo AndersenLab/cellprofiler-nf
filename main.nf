@@ -297,7 +297,7 @@ process config_CP_input_dauer {
     for FNAME in \${FNAMES[*]}; do
         NAME=\$(basename \${FNAME})
         DIR=\$(dirname \${FNAME})
-        if [[ \${NAME} =~ ^([0-9]+)-([a-z|A-Z|0-9|_]+)-(p[0-9]+)-(m[0-9]+[X|x])_([A-Z][0-9]{2})_(w[0-9])(_[A-Z|0-9|-]{36})?\\.(tif|TIF)\$ ]]; then
+        if [[ \${NAME} =~ ^([0-9]+)-([a-z|A-Z|0-9|_]+)-(p[0-9]+)-(m[0-9]+[X|x])_([A-Z][0-9]{2})_(w[0-9])(_?[A-Z|0-9|-]{36})?\\.(tif|TIF)\$ ]]; then
             DATE=\${BASH_REMATCH[1]}
             EXP=\${BASH_REMATCH[2]}
             PLATE=\${BASH_REMATCH[3]}
@@ -369,7 +369,7 @@ process config_CP_input_toxin {
     for FNAME in \${FNAMES[*]}; do
         NAME=\$(basename \${FNAME})
         DIR=\$(dirname \${FNAME})
-        if [[ \${NAME} =~ ^([0-9]+)-([a-z|A-Z|0-9|_]+)-(p[0-9]+)-(m[0-9]+[X|x])_([A-Z][0-9]{2})(_[A-Z|0-9|-]{36})?\\.(tif|TIF)\$ ]]; then
+        if [[ \${NAME} =~ ^([0-9]+)-([a-z|A-Z|0-9|_]+)-(p[0-9]+)-(m[0-9]+[X|x])_([A-Z][0-9]{2})(_?[A-Z|0-9|-]{36})?\\.(tif|TIF)\$ ]]; then
             DATE=\${BASH_REMATCH[1]}
             EXP=\${BASH_REMATCH[2]}
             PLATE=\${BASH_REMATCH[3]}
