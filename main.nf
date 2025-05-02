@@ -144,19 +144,22 @@ workflow {
             .combine(Channel.of(null)) | runCP
         
         // Compile csv files by model
-        split_csv =  { item -> [ item.baseName + ".csv", item ] }
         runCP.out.cp_csv.flatten() | dos2unix
-        nonoverlapping = dos2unix.out
+
+        collated_csv = dos2unix.out
             .collect()
             .flatten()
-        
-        nonoverlapping_joined = nonoverlapping
-            .collectFile(split_csv, skip:1, keepHeader:true, storeDir:"${params.out}/processed_data")
-            .collate(3)
+            .map{ item -> [ "${item.simpleName}.csv", item ] }
+            .groupTuple()
 
-        csv_files = nonoverlapping_joined
+        concat_csv( collated_csv )
+
+        nonoverlapping = concat_csv.out
+            .collect()
             .flatten()
             .last()
+
+        csv_files = nonoverlapping
             .combine(Channel.of("${params.analysisDir}"))
             .combine(Channel.fromPath("${params.outdir}"))
             .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_dauer.R"))
@@ -198,19 +201,22 @@ workflow {
         runCP(CP_in)
 
         // Compile csv files by model
-        split_csv =  { item -> [ item.baseName + ".csv", item ] }
         runCP.out.cp_csv.flatten() | dos2unix
-        nonoverlapping = dos2unix.out
+
+        collated_csv = dos2unix.out
             .collect()
             .flatten()
+            .map{ item -> [ "${item.simpleName}.csv", item ] }
+            .groupTuple()
 
-        nonoverlapping_joined = nonoverlapping
-            .collectFile(split_csv, skip:1, keepHeader:true, storeDir:"${params.out}/processed_data")
-            .collate(5)
+        concat_csv( collated_csv )
 
-        csv_files = nonoverlapping_joined
+        nonoverlapping = concat_csv.out
+            .collect()
             .flatten()
             .last()
+
+        csv_files = nonoverlapping
             .combine(Channel.of("${params.analysisDir}"))
             .combine(Channel.fromPath("${params.outdir}"))
             .combine(Channel.fromPath("${params.bin_dir}/proc_CP_output_toxin.R"))
@@ -411,7 +417,7 @@ process runCP {
 
 
     output:
-        tuple path("*NonOverlappingWorms.csv"), path("WormObjects.csv"), emit: cp_csv
+        tuple path("*NonOverlappingWorms.*csv"), path("WormObjects.*csv"), emit: cp_csv
         path("*.png"), emit: cp_png
 
     script:
@@ -430,6 +436,11 @@ process runCP {
     -g ${group} \
     -i ./ -o ./ \
     -t ${params.tmpDir}
+
+    GROUP=`echo "${group}" | awk '{split(\$1,A,"="); print A[2]}'`
+    for I in *Worm*.csv; do
+        mv \${I} \${I/.csv/.\${GROUP}_csv}
+    done
     """
 }
 
@@ -443,18 +454,42 @@ process dos2unix {
     container null
 
     input:
-        path(dataDir)
+        path("*")
     output:
-       path "converted/*.csv"
+       path "converted/*.*csv"
 
     """
     mkdir -p converted
-    for I in *.csv; do
+    for I in *.*csv; do
         dos2unix -n \$I converted/\$I
     done
     """
 }
 
+/*
+~ ~ ~ > * CONCATENATE CSV FILES
+*/
+
+process concat_csv {
+
+    executor "local"
+    container null
+
+    publishDir "${params.out}/processed_data", mode: 'copy', pattern: "*.csv"
+
+    input:
+        tuple val(outname), path("CSVs/*")
+    output:
+        path outname
+
+    """
+    CSV_FILES=(`ls CSVs/*`)
+    head -n 1 \${CSV_FILES[0]} > ${outname}
+    for I in `seq 0 1 \$(expr \${#CSV_FILES[*]} - 1)`; do
+        tail -n +2 \${CSV_FILES[\${I}]} >> ${outname}
+    done
+    """
+}
 
 /*
 ~ ~ ~ > * PROCESS CELLPROFILER OUTPUTS
