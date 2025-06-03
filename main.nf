@@ -407,6 +407,7 @@ process runCP {
     time { 120.minute * task.attempt }
     cpus = { 2 * task.attempt }
     memory = { 4.GB * task.attempt }
+    array = 300
 
     publishDir "${params.out}/processed_images", mode: 'copy', pattern: "*.png"
 
